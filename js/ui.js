@@ -670,8 +670,24 @@
     // ---------------------------------------------------------------
     choiceOpen: false,
 
-    showSkillChoice(offers) {
+    showSkillChoice(offers, isReroll) {
       this.choiceOpen = true;
+      // A little party for the level-up itself — once per modal, not on rerolls.
+      if (!isReroll) {
+        const gx = this.game;
+        const palette = ['#ffd23e', '#7dc93b', '#4f8fd0', '#b07ae0', '#ff7bac'];
+        const burst = (n) => {
+          for (let i = 0; i < n; i++) {
+            const x = gx.W * (0.15 + Math.random() * 0.7);
+            const y = gx.H * (0.12 + Math.random() * 0.45);
+            gx.fx.ring(x, y, 100 + Math.random() * 70, palette[(Math.random() * 5) | 0]);
+            for (const c of palette) gx.fx.spark(x, y, c, 7, 430);
+          }
+        };
+        burst(3);
+        setTimeout(() => burst(3), 260);
+        setTimeout(() => burst(2), 620);
+      }
       const stars = (n) => '★'.repeat(n); // only the stars you actually have
       const card = (o, i) => {
         const def = RA.SKILLS.byId[o.id];
@@ -714,7 +730,7 @@
         reroll.addEventListener('click', () => {
           g.rerolls--;
           RA.SND.play('click');
-          this.showSkillChoice(RA.SKILLS.genOffers(g)); // re-render with fresh offers
+          this.showSkillChoice(RA.SKILLS.genOffers(g), true); // re-render with fresh offers
         });
       }
       // Idle nudge: 4s without input → gently wiggle one option as a hint.

@@ -476,7 +476,11 @@ body.in-game .game-only { animation: hudIn 0.55s 0.8s both; }
   position: relative;
   width: 186px;
   min-height: 292px;
-  background: linear-gradient(180deg, rgba(26, 28, 44, 0.97), rgba(14, 15, 26, 0.97));
+  /* the face tints with the star tier; a soft diagonal weave sits on top */
+  --cardFace: linear-gradient(180deg, rgba(26, 28, 44, 0.97), rgba(14, 15, 26, 0.97));
+  background:
+    repeating-linear-gradient(-45deg, rgba(255, 255, 255, 0.035) 0 6px, rgba(255, 255, 255, 0) 6px 14px),
+    var(--cardFace);
   border: 2px solid rgba(255, 255, 255, 0.14);
   box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.05);
   border-radius: 10px;
@@ -486,11 +490,16 @@ body.in-game .game-only { animation: hudIn 0.55s 0.8s both; }
   font-family: inherit;
   transition: transform 0.08s, border-color 0.08s, box-shadow 0.12s;
 }
-.skillCard:hover {
-  transform: translateY(-4px);
+.skillCard:hover { transform: translateY(-4px); }
+/* Hover glow matches the card's own tier light. */
+.skillCard.t0:hover, .skillCard.t1:hover {
   border-color: var(--yellow);
   box-shadow: 0 0 18px rgba(255, 210, 62, 0.55), inset 0 0 0 1px rgba(255, 255, 255, 0.06);
 }
+.skillCard.t2:hover { box-shadow: 0 0 22px rgba(125, 201, 59, 0.7), inset 0 0 0 1px rgba(255, 255, 255, 0.06); }
+.skillCard.t3:hover { box-shadow: 0 0 22px rgba(79, 143, 208, 0.75), inset 0 0 0 1px rgba(255, 255, 255, 0.06); }
+.skillCard.t4:hover { box-shadow: 0 0 22px rgba(176, 122, 224, 0.8), inset 0 0 0 1px rgba(255, 255, 255, 0.06); }
+.skillCard.t5:hover { filter: brightness(1.1); }
 /* Idle hint: one option waves at a hesitating player (4s cadence). */
 @keyframes cardNudge {
   0%, 100% { transform: rotate(0) translateY(0); }
@@ -499,11 +508,6 @@ body.in-game .game-only { animation: hudIn 0.55s 0.8s both; }
   80% { transform: rotate(-0.5deg); }
 }
 .skillCard.nudge { animation: cardNudge 0.55s ease-in-out; }
-/* The level-up modal wears the same diagonal weave as the buttons. */
-#modalBox:has(.skillBox) {
-  background-image: repeating-linear-gradient(-45deg,
-    rgba(255, 255, 255, 0.028) 0 7px, rgba(255, 255, 255, 0) 7px 16px);
-}
 .skillGem {
   position: relative;
   width: 78px; height: 78px;
@@ -539,11 +543,26 @@ body.in-game .game-only { animation: hudIn 0.55s 0.8s both; }
   0%, 100% { color: #ffd23e; text-shadow: 0 0 8px rgba(255, 210, 62, 0.9); }
   50% { color: #ff5a3a; text-shadow: 0 0 15px rgba(255, 90, 58, 0.9); }
 }
-/* Tier reads from the border glow + stars; the face stays reference-dark. */
-.skillCard.t2 { border-color: #7dc93b; box-shadow: 0 0 12px rgba(125, 201, 59, 0.3), inset 0 0 0 1px rgba(255, 255, 255, 0.05); }
-.skillCard.t3 { border-color: #4f8fd0; box-shadow: 0 0 12px rgba(79, 143, 208, 0.34), inset 0 0 0 1px rgba(255, 255, 255, 0.05); }
-.skillCard.t4 { border-color: #b07ae0; box-shadow: 0 0 14px rgba(176, 122, 224, 0.4), inset 0 0 0 1px rgba(255, 255, 255, 0.05); }
-.skillCard.t5 { animation: tierGoldBorder 0.9s infinite; }
+/* The card face follows the star tier. */
+.skillCard.t2 {
+  --cardFace: linear-gradient(180deg, rgba(45, 62, 36, 0.97), rgba(28, 40, 22, 0.97));
+  border-color: #7dc93b;
+  box-shadow: 0 0 12px rgba(125, 201, 59, 0.3), inset 0 0 0 1px rgba(255, 255, 255, 0.05);
+}
+.skillCard.t3 {
+  --cardFace: linear-gradient(180deg, rgba(38, 54, 74, 0.97), rgba(24, 35, 50, 0.97));
+  border-color: #4f8fd0;
+  box-shadow: 0 0 12px rgba(79, 143, 208, 0.34), inset 0 0 0 1px rgba(255, 255, 255, 0.05);
+}
+.skillCard.t4 {
+  --cardFace: linear-gradient(180deg, rgba(56, 43, 74, 0.97), rgba(38, 28, 52, 0.97));
+  border-color: #b07ae0;
+  box-shadow: 0 0 14px rgba(176, 122, 224, 0.4), inset 0 0 0 1px rgba(255, 255, 255, 0.05);
+}
+.skillCard.t5 {
+  --cardFace: linear-gradient(180deg, rgba(74, 62, 32, 0.97), rgba(52, 42, 20, 0.97));
+  animation: tierGoldBorder 0.9s infinite;
+}
 @keyframes tierGoldBorder {
   0%, 100% { border-color: #ffd23e; box-shadow: 0 0 14px rgba(255, 210, 62, 0.45); }
   50% { border-color: #ff5a3a; box-shadow: 0 0 20px rgba(255, 90, 58, 0.55); }
