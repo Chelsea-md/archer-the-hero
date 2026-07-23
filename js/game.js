@@ -79,7 +79,10 @@
     resize(w, h) {
       this.W = w; this.H = h;
       this.towerTop = h * 0.66;
-      this.towerX = GEO.clamp(w * 0.235, 150, 480);
+      // Center the battle: the tower sits so the tower→farthest-spawn span
+      // (~1100 units, see spawnDistBand) straddles the screen center — wide
+      // monitors get symmetric margins instead of a right-side void.
+      this.towerX = GEO.clamp((w - 1100) / 2, 150, w * 0.4);
       this.tower = {
         cx: this.towerX,
         half: 88,
