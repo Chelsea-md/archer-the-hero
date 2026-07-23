@@ -226,11 +226,13 @@
       }
       case 'dwarfHunter':
       case 'dwarfWizard':
-      case 'dwarfRogue': {
+      case 'dwarfRogue':
+      case 'dwarfHealer': {
         const glows = {
           dwarfHunter: 'rgba(168, 201, 138, 0.4)',
           dwarfWizard: 'rgba(159, 176, 224, 0.4)',
           dwarfRogue: 'rgba(154, 154, 165, 0.4)',
+          dwarfHealer: 'rgba(143, 207, 154, 0.45)',
         };
         glow(glows[id]);
         // the actual in-game dwarf, blown up to portrait size

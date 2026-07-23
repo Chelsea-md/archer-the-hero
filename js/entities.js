@@ -138,6 +138,7 @@
       dwarfHunter: { body: '#a8c98a', acc: '#7da05f' },
       dwarfWizard: { body: '#9fb0e0', acc: '#5a6bb0' },
       dwarfRogue:  { body: '#9a9aa5', acc: '#5a5a65' },
+      dwarfHealer: { body: '#8fcf9a', acc: '#4f9c62' },
     };
     const c = colors[type] || colors.dwarfHunter;
     const hop = fireAnim > 0.3 ? -(fireAnim - 0.3) * 90 : 0;
@@ -182,6 +183,19 @@
       ctx.globalAlpha = 0.5 + Math.sin(time * 6) * 0.25;
       ctx.fillStyle = '#cfe0f2';
       ctx.beginPath(); ctx.arc(x + 8, by - 12, 3.2, 0, 7); ctx.fill();
+      ctx.globalAlpha = 1;
+    } else if (type === 'dwarfHealer') {
+      // medic cap with a red cross
+      ctx.fillStyle = '#f5f5f5';
+      ctx.beginPath(); ctx.arc(x, headY - 3, 6, Math.PI, Math.PI * 2); ctx.fill();
+      ctx.strokeStyle = '#e0453c';
+      ctx.lineWidth = 2;
+      ctx.beginPath(); ctx.moveTo(x, headY - 9); ctx.lineTo(x, headY - 5); ctx.stroke();
+      ctx.beginPath(); ctx.moveTo(x - 2, headY - 7); ctx.lineTo(x + 2, headY - 7); ctx.stroke();
+      // pulsing potion vial in the outstretched hand
+      ctx.globalAlpha = 0.6 + Math.sin(time * 5) * 0.25;
+      ctx.fillStyle = '#a5e07b';
+      ctx.fillRect(x + 6, by - 16, 3.5, 5.5);
       ctx.globalAlpha = 1;
     } else if (type === 'dwarfRogue') {
       // hood

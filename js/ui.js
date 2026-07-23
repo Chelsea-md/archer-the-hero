@@ -20,7 +20,7 @@
     superAmp: '📢', eagleBoots: '👢', woodenVault: '💰', greatStamp: '❤️',
     license: '📜', licksKnife: '🔪',
     whiteBird: '🕊️', blueBird: '🐦',
-    dwarfHunter: '🏹', dwarfWizard: '🧙', dwarfRogue: '🥷',
+    dwarfHunter: '🏹', dwarfWizard: '🧙', dwarfRogue: '🥷', dwarfHealer: '🧑‍⚕️',
     skullCache: '💀',
   };
 
