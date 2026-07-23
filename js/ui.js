@@ -361,6 +361,13 @@
         $('playerHud').style.left = hudLeft;
         $('dragCoach').style.left = toPx(game.towerX + 75);
       }
+      // Self-syncing badge: whatever mutates the quiver, the label/pips can
+      // never drift from the arrow that will actually leave the bow.
+      const nocked = game.currentDef().id;
+      if (c.badgeId !== nocked || c.badgeN !== game.runArrows.length || c.badgeCur !== game.curArrow) {
+        c.badgeId = nocked; c.badgeN = game.runArrows.length; c.badgeCur = game.curArrow;
+        this.refreshBadge();
+      }
       if (p) {
         const hpPct = Math.max(0, Math.round((p.hp / p.hpMax) * 100));
         const staPct = Math.max(0, Math.round((p.sta / p.staMax) * 100));

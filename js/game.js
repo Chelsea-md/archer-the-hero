@@ -1009,6 +1009,9 @@
     }
 
     currentDef() {
+      // Self-heal a stale index instead of silently firing 'default' while
+      // the badge claims something else.
+      if (this.curArrow >= this.runArrows.length || this.curArrow < 0) this.curArrow = 0;
       return RA.ARROWS.byId[this.runArrows[this.curArrow]] || RA.ARROWS.byId.default;
     }
 
