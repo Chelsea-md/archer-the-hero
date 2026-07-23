@@ -203,6 +203,7 @@
       'settings.title': 'SETTINGS',
       'settings.sound': 'SOUND',
       'settings.sensitivity': 'AIM SENSITIVITY',
+      'ui.tabHint': 'TAB',
       'settings.sensReset': 'RESET',
       'settings.language': 'LANGUAGE',
       'settings.reset': 'RESET PROGRESS',

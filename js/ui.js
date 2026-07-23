@@ -401,6 +401,15 @@
     refreshBadge() {
       const g = this.game;
       if (!g) return;
+      // Pips above the badge show WHICH equipped arrow is nocked (2+ slots).
+      const n = g.runArrows.length;
+      const hint = $('arrowHint');
+      hint.classList.toggle('hidden', n < 2 || $('arrowBadge').classList.contains('hidden'));
+      if (n >= 2) {
+        let pips = '';
+        for (let i = 0; i < n; i++) pips += '<span class="pip' + (i === g.curArrow ? ' on' : '') + '"></span>';
+        $('arrowPips').innerHTML = pips;
+      }
       const def = g.currentDef();
       $('badgeName').textContent = t('arrow.' + def.id);
       const cv = $('badgeIcon');
@@ -440,9 +449,9 @@
     onStateChange(state) {
       document.body.classList.toggle('in-game', state !== 'menu');
       $('arrowBadge').classList.toggle('hidden', state === 'menu');
+      this.refreshBadge();
       if (state === 'menu') {
         this.refreshEconomy();
-        this.refreshBadge();
       }
     },
 
@@ -630,11 +639,17 @@
         '<div class="deathBest">' + t('death.best', { n: best }) + '</div>' +
         '<div class="deathSkulls">' + t('death.skulls', { n: skulls }) + '</div>' +
         this.skillRecapHtml() +
-        '<div class="deathTap">' + t('death.tap') + '</div>' +
         '</div>'
       );
+      // QA: the continue prompt floats on the gloom below the modal box.
+      document.querySelectorAll('.deathTapOut').forEach((el) => el.remove());
+      const tapEl = document.createElement('div');
+      tapEl.className = 'deathTapOut';
+      tapEl.textContent = t('death.tap');
+      $('overlay').appendChild(tapEl);
       const done = () => {
         $('overlay').removeEventListener('click', done);
+        tapEl.remove();
         this.closeModal();
         this.game.backToMenu();
       };
