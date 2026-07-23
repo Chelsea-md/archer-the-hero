@@ -179,35 +179,37 @@
       return { lo, hi };
     }
 
-    // The longest range any EQUIPPED arrow manages at a 90% draw against a
-    // target `h` units above the hand — a heavy-only quiver (mace/axe)
-    // shortens the whole battlefield instead of becoming useless.
+    // The range of the SHORTEST equipped arrow at a 90% draw against a
+    // target `h` units above the hand. The band follows the worst arrow so
+    // every weapon in the quiver stays usable on every spawn — a heavy
+    // quiver (mace/axe) shortens the whole battlefield instead of leaving
+    // dead weight on the Tab rotation.
     playerReach(h) {
       const B = RA.BAL;
       const ids = this.runArrows && this.runArrows.length ? this.runArrows : ['default'];
-      let best = 0;
+      let worst = Infinity;
       for (const id of ids) {
         const d = RA.ARROWS.byId[id] || RA.ARROWS.byId.default;
         const g = B.ARROW_GRAVITY * (d.gravityScale == null ? 1 : d.gravityScale);
         const v = B.ARROW_SPEED * (d.speedScale || 1) *
           (1 - B.WEIGHT_SPEED_PENALTY * (d.stats[2] - 1)) * (0.45 + 0.55 * 0.9);
-        best = Math.max(best, g > 1 ? (v / g) * Math.sqrt(Math.max(0, v * v - 2 * g * h)) : 4000);
+        worst = Math.min(worst, g > 1 ? (v / g) * Math.sqrt(Math.max(0, v * v - 2 * g * h)) : 4000);
       }
-      return best;
+      return worst;
     }
 
-    // Platforms may not spawn higher than the quiver can physically lob —
-    // returns the minimum allowed platform cy (y grows downward).
+    // Platforms may not spawn higher than the WORST equipped arrow can
+    // physically lob — returns the minimum allowed platform cy (y-down).
     quiverCyFloor(half, u, bobA) {
       const B = RA.BAL;
       const ids = this.runArrows && this.runArrows.length ? this.runArrows : ['default'];
-      let hMax = 0;
+      let hMax = Infinity;
       for (const id of ids) {
         const d = RA.ARROWS.byId[id] || RA.ARROWS.byId.default;
         const g = B.ARROW_GRAVITY * (d.gravityScale == null ? 1 : d.gravityScale);
         const v = B.ARROW_SPEED * (d.speedScale || 1) *
           (1 - B.WEIGHT_SPEED_PENALTY * (d.stats[2] - 1));
-        hMax = Math.max(hMax, g > 1 ? (0.75 * v * v) / (2 * g) : 9999);
+        hMax = Math.min(hMax, g > 1 ? (0.75 * v * v) / (2 * g) : 9999);
       }
       return (this.towerTop - 80) - hMax + half + (bobA || 0) + 76 * (u || 1);
     }
@@ -813,6 +815,12 @@
         this.level++;
         this.pendingChoices++;
         RA.SND.play('levelup');
+        // Leveling up cleanses any poison/burn ticking on the archer.
+        const p = this.player;
+        if (p && p.alive && p.dots.length) {
+          p.dots = [];
+          this.fx.spark(p.pose.chest.x, p.pose.chest.y, '#a5e07b', 8, 170);
+        }
         need = RA.BAL.xpForNext(this.level);
         // Don't interrupt the moment: the hit-stop, HEADSHOT! text and
         // kill rings play out on screen before the skill modal opens.
@@ -1077,7 +1085,9 @@
       }
 
       const durMult = arrow.fromPlayer ? this.sk.effDur : 1;
-      if (def.dot && target.alive) target.addDot(def.dot.kind, def.dot.dps, def.dot.dur * durMult);
+      // Damage upgrades/skills fatten the DoT ticks too (poison, burn, …).
+      const dotMult = arrow.fromPlayer ? this.playerDmgMult * this.sk.dmg : 1;
+      if (def.dot && target.alive) target.addDot(def.dot.kind, def.dot.dps * dotMult, def.dot.dur * durMult);
       const stunDur = arrow.stunDur != null ? arrow.stunDur : def.stun;
       if (stunDur && target.alive) {
         target.stunT = Math.max(target.stunT, stunDur * durMult);
@@ -1332,6 +1342,7 @@
         // Keep "one game" ad unlocks equipped alongside the saved selection.
         this.runArrows = sel.concat(this.adArrows.filter((a) => !sel.includes(a)));
         this.curArrow = Math.min(this.curArrow, this.runArrows.length - 1);
+        RA.UI && RA.UI.refreshBadge(); // the nocked arrow may have changed
       }
       RA.SND.play('click');
     }
@@ -1341,6 +1352,7 @@
       if (!this.adArrows.includes(id)) this.adArrows.push(id);
       if (!this.runArrows.includes(id)) this.runArrows.push(id);
       this.curArrow = this.runArrows.indexOf(id);
+      RA.UI && RA.UI.refreshBadge(); // badge must follow the fresh unlock
       RA.UI && RA.UI.toast(RA.I18N.t('toast.unlockedRun', { name: RA.I18N.t('arrow.' + id) }));
     }
 
