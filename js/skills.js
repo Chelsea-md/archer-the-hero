@@ -39,12 +39,14 @@
         const t = target(game);
         if (!t) return false;
         const fromLeft = t.anchorX > game.W * 0.5;
+        const sx = fromLeft ? -30 : game.W + 30;
         game.spawnArrow({
-          x: fromLeft ? -30 : game.W + 30,
+          x: sx,
           y: t.pose.chest.y - 60 - Math.random() * 80,
           vx: (fromLeft ? 1 : -1) * 760, vy: 60,
           def: RA.ARROWS.byId.sBird, fromPlayer: true, power: 1,
           baseDmg: 14 + 4 * s, noXp: true,
+          ttl: Math.max(4, Math.abs(t.anchorX - sx) / 760 + 1.2), // ultrawide flights outlive the default 4s
         });
         return true;
       },

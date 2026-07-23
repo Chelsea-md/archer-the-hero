@@ -68,17 +68,23 @@
       const tgt = p.pose.chest;
       const def = this.def;
       const B = RA.BAL;
-      const v = B.ARROW_SPEED * (def.speedScale || 1) *
-        (1 - B.WEIGHT_SPEED_PENALTY * (def.stats[2] - 1)) *
-        (0.45 + 0.55 * this.targetDraw);
+      const base = B.ARROW_SPEED * (def.speedScale || 1) *
+        (1 - B.WEIGHT_SPEED_PENALTY * (def.stats[2] - 1));
       const grav = B.ARROW_GRAVITY * (def.gravityScale == null ? 1 : def.gravityScale) || 1;
 
       const dx = tgt.x - src.x;
       const R = Math.max(20, Math.abs(dx));
       const h = src.y - tgt.y; // height of target above source (screen y is down)
-      const disc = v * v * v * v - grav * (grav * R * R + 2 * h * v * v);
+      let v = base * (0.45 + 0.55 * this.targetDraw);
+      let disc = v * v * v * v - grav * (grav * R * R + 2 * h * v * v);
+      if (disc <= 0 && this.targetDraw < 1) {
+        // Out of range at the lazy draw — commit to a full draw and re-solve.
+        this.targetDraw = 1;
+        v = base;
+        disc = v * v * v * v - grav * (grav * R * R + 2 * h * v * v);
+      }
       let phi;
-      if (disc <= 0) phi = 0.7; // out of range — lob it high and hope
+      if (disc <= 0) phi = 0.7; // still out of range — lob it high and hope
       else phi = Math.atan((v * v - Math.sqrt(disc)) / (grav * R));
       phi += (Math.random() - 0.5) * 2 * B.enemyAimError(g.score);
 

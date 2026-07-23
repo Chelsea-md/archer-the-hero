@@ -68,7 +68,10 @@
         });
       }
 
-      this.resize(window.innerWidth, window.innerHeight);
+      // Convert to world units up front (same formula as main.js fit()) so
+      // the first spawn isn't computed in raw CSS pixels.
+      const s0 = Math.max(0.42, window.innerHeight / 1200);
+      this.resize(window.innerWidth / s0, window.innerHeight / s0);
       this.initWorld();
     }
 
@@ -88,8 +91,10 @@
         this.player.plat = this.tower;
       }
       for (const p of this.platforms) {
-        p.cx = GEO.clamp(p.cx, w * 0.52, w * 0.9);
-        p.cy = GEO.clamp(p.cy, h * 0.3, h * 0.62);
+        p.cy = GEO.clamp(p.cy, h * 0.34, h * 0.62);
+        const occ = this.enemies.find((e) => e.plat === p);
+        const band = this.spawnDistBand(p, occ && occ.boss);
+        p.cx = Math.min(GEO.clamp(p.cx, this.towerX + band.lo, this.towerX + band.hi), w - 150);
       }
       // Keep enemies standing on their (possibly relocated) platform.
       for (const e of this.enemies) {
@@ -140,6 +145,31 @@
 
     towerRect() {
       return { x: this.towerX - 92, y: this.towerTop, w: 184, h: this.H - this.towerTop + 60 };
+    }
+
+    // The tower→platform gap must be bridgeable by BOTH archers: the player's
+    // default arrow at 90% draw (×0.85 margin) and the occupant's own arrow at
+    // full draw (×0.9 — the brain re-solves at full draw when short). Distances
+    // are absolute world units so battle range no longer grows with monitor
+    // aspect ratio; heavy-arrow bosses (mace/axe) pull the whole band closer.
+    spawnDistBand(plat, boss) {
+      const B = RA.BAL, u = boss ? boss.scale : 1;
+      const def = (boss && RA.ARROWS.byId[boss.arrow]) || RA.ARROWS.byId.default;
+      const pHand = this.towerTop - 80, pChest = this.towerTop - 76;
+      const range = (v, g, h) => g > 1 ? (v / g) * Math.sqrt(Math.max(0, v * v - 2 * g * h)) : 4000;
+      const gE = B.ARROW_GRAVITY * (def.gravityScale == null ? 1 : def.gravityScale);
+      const vP = B.ARROW_SPEED * (0.45 + 0.55 * 0.9);
+      const vE = B.ARROW_SPEED * (def.speedScale || 1) *
+        (1 - B.WEIGHT_SPEED_PENALTY * (def.stats[2] - 1));
+      let hi = Math.min(
+        range(vP, B.ARROW_GRAVITY, pHand - (plat.cy - plat.s - plat.bobA - 76 * u)) * 0.85,
+        range(vE, gE, (plat.cy - plat.s + plat.bobA - 80 * u) - pChest) * 0.9
+      );
+      hi = Math.max(hi, 480);
+      const menu = this.state === 'menu';
+      if (menu) hi = Math.min(hi, 1050);
+      const lo = Math.max(420, Math.min(menu ? 800 : 650, hi * 0.8));
+      return { lo, hi };
     }
 
     // ---------------------------------------------------------------
@@ -631,16 +661,14 @@
           : RA.BAL.MID_BOSSES[this.midIdx++ % RA.BAL.MID_BOSSES.length];
       }
       const W = this.W, H = this.H;
-      // In the menu, keep the practice enemy between the upgrade panel
-      // and the arrow shop panel so neither overlaps it.
-      const xMin = this.state === 'menu' ? 0.6 : 0.56;
-      const xMax = this.state === 'menu' ? 0.76 : 0.86;
       const plat = new RA.Platform(
-        W * (xMin + Math.random() * (xMax - xMin)),
+        0, // cx set below — the platform's height/bob determine the fair band
         H * (0.34 + Math.random() * 0.28),
         boss ? Math.round(62 * Math.max(1, boss.scale * 0.92)) : 62,
         { bobA: Math.random() < 0.45 ? 8 + Math.random() * 16 : 0, bobS: 0.5 + Math.random() * 0.8 }
       );
+      const band = this.spawnDistBand(plat, boss);
+      plat.cx = Math.min(this.towerX + band.lo + Math.random() * (band.hi - band.lo), W - 150);
       this.platforms = [plat];
 
       const diff = this.state === 'playing'
