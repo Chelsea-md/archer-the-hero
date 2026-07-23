@@ -18,6 +18,7 @@
       selected: ['default'],   // equipped arrow ids (max 1 + arrowSlots lvl)
       settings: {
         sound: true, volume: 1, lang: 'en', gore: 'full', // gore: 'off' | 'low' | 'full'
+        sensitivity: 1, // aim response to the drag (1 = instant)
         keys: { jump: 'Space', crouch: 'ControlLeft' }, // PC bindings (rebindable)
       },
       seenAppleTip: false,

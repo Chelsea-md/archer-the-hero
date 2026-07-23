@@ -291,17 +291,17 @@
       tipColor: '#d9d9d9', pierce: true, noStick: true, spin: 18 },
 
     { id: 'hook', cost: 'ad', dmg: 18, stats: [2, 3, 3], icon: 'hook',
-      tipColor: '#c9b98a', speedScale: 0.9,
+      tipColor: '#c9b98a',
       onHit(game, arrow, target) {
         const scale = target.giant ? 0.35 : 1;
         target.pushAnchor(-Math.sign(arrow.vx || 1) * 45 * scale);
       } },
 
     { id: 'mace', cost: 90, dmg: 40, stats: [4, 4, 5], icon: 'ball',
-      tipColor: '#7d7d7d', speedScale: 0.8, knockShift: 34, noStick: true },
+      tipColor: '#7d7d7d', speedScale: 0.95, knockShift: 34, noStick: true },
 
     { id: 'axe', cost: 100, dmg: 36, stats: [4, 3, 4], icon: 'axe',
-      tipColor: '#c9c9c9', shaft: '#9a7b4f', speedScale: 0.85, knockShift: 20, spin: 9 },
+      tipColor: '#c9c9c9', shaft: '#9a7b4f', speedScale: 0.95, knockShift: 20, spin: 9 },
 
     { id: 'magnet', cost: 'ad', dmg: 12, stats: [1, 2, 2], icon: 'magnet',
       onTick(game, arrow, dt) {
@@ -429,10 +429,10 @@
       } },
 
     { id: 'sword', cost: 'ad', dmg: 46, stats: [5, 4, 4], icon: 'sword',
-      tipColor: '#e0e6ea', speedScale: 0.9, knockShift: 42 },
+      tipColor: '#e0e6ea', speedScale: 0.95, knockShift: 42 },
 
     { id: 'balls', cost: 260, dmg: 34, stats: [4, 4, 5], icon: 'ball',
-      tipColor: '#5a5a5a', speedScale: 0.75, knockShift: 36, noStick: true,
+      tipColor: '#5a5a5a', speedScale: 0.9, knockShift: 36, noStick: true,
       onHit(game, arrow) { game.explode(arrow.x, arrow.y, 60, 12, arrow.fromPlayer, { silent: true }); } },
 
     { id: 'colt', cost: 270, dmg: 18, stats: [2, 1, 1], icon: 'bullet',

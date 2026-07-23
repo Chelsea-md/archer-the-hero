@@ -4,7 +4,7 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
   <title>STICK ARCHERS</title>
-  <link rel="stylesheet" href="css/style.css?v=23" />
+  <link rel="stylesheet" href="css/style.css?v=29" />
 </head>
 <body>
   <canvas id="game"></canvas>
@@ -24,7 +24,7 @@
 
     <!-- in-game run clock + XP bar -->
     <div id="runHud" class="game-only">
-      <div id="runTimer">14:00</div>
+      <div id="runTimer">00:00</div>
       <div id="xpWrap">
         <div id="xpBar"><div id="xpFill"></div></div>
         <span id="lvLabel"></span>
@@ -67,7 +67,11 @@
     <!-- new-best celebration banner -->
     <div id="bestBanner" class="hidden" data-i18n="toast.newBest"></div>
 
-    <!-- in-game current arrow (click / Q to cycle) -->
+    <!-- in-game current arrow (click / Q / Tab to cycle) -->
+    <div id="arrowHint" class="hidden">
+      <span class="tabKey" data-i18n="ui.tabHint"></span>
+      <span id="arrowPips"></span>
+    </div>
     <div id="arrowBadge" class="hidden">
       <canvas id="badgeIcon" width="72" height="20"></canvas>
       <span id="badgeName"></span>
@@ -94,18 +98,18 @@
   </div>
 
   <!-- ?v= busts stale browser caches — bump it when shipping updates -->
-  <script src="js/balance.js?v=23"></script>
-  <script src="js/i18n.js?v=23"></script>
-  <script src="js/save.js?v=23"></script>
-  <script src="js/audio.js?v=23"></script>
-  <script src="js/physics.js?v=23"></script>
-  <script src="js/arrows.js?v=23"></script>
-  <script src="js/skills.js?v=23"></script>
-  <script src="js/art.js?v=23"></script>
-  <script src="js/entities.js?v=23"></script>
-  <script src="js/ai.js?v=23"></script>
-  <script src="js/game.js?v=23"></script>
-  <script src="js/ui.js?v=23"></script>
-  <script src="js/main.js?v=23"></script>
+  <script src="js/balance.js?v=29"></script>
+  <script src="js/i18n.js?v=29"></script>
+  <script src="js/save.js?v=29"></script>
+  <script src="js/audio.js?v=29"></script>
+  <script src="js/physics.js?v=29"></script>
+  <script src="js/arrows.js?v=29"></script>
+  <script src="js/skills.js?v=29"></script>
+  <script src="js/art.js?v=29"></script>
+  <script src="js/entities.js?v=29"></script>
+  <script src="js/ai.js?v=29"></script>
+  <script src="js/game.js?v=29"></script>
+  <script src="js/ui.js?v=29"></script>
+  <script src="js/main.js?v=29"></script>
 </body>
 </html>

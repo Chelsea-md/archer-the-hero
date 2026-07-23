@@ -138,6 +138,7 @@
       dwarfHunter: { body: '#a8c98a', acc: '#7da05f' },
       dwarfWizard: { body: '#9fb0e0', acc: '#5a6bb0' },
       dwarfRogue:  { body: '#9a9aa5', acc: '#5a5a65' },
+      dwarfHealer: { body: '#8fcf9a', acc: '#4f9c62' },
     };
     const c = colors[type] || colors.dwarfHunter;
     const hop = fireAnim > 0.3 ? -(fireAnim - 0.3) * 90 : 0;
@@ -182,6 +183,19 @@
       ctx.globalAlpha = 0.5 + Math.sin(time * 6) * 0.25;
       ctx.fillStyle = '#cfe0f2';
       ctx.beginPath(); ctx.arc(x + 8, by - 12, 3.2, 0, 7); ctx.fill();
+      ctx.globalAlpha = 1;
+    } else if (type === 'dwarfHealer') {
+      // medic cap with a red cross
+      ctx.fillStyle = '#f5f5f5';
+      ctx.beginPath(); ctx.arc(x, headY - 3, 6, Math.PI, Math.PI * 2); ctx.fill();
+      ctx.strokeStyle = '#e0453c';
+      ctx.lineWidth = 2;
+      ctx.beginPath(); ctx.moveTo(x, headY - 9); ctx.lineTo(x, headY - 5); ctx.stroke();
+      ctx.beginPath(); ctx.moveTo(x - 2, headY - 7); ctx.lineTo(x + 2, headY - 7); ctx.stroke();
+      // pulsing potion vial in the outstretched hand
+      ctx.globalAlpha = 0.6 + Math.sin(time * 5) * 0.25;
+      ctx.fillStyle = '#a5e07b';
+      ctx.fillRect(x + 6, by - 16, 3.5, 5.5);
       ctx.globalAlpha = 1;
     } else if (type === 'dwarfRogue') {
       // hood
@@ -391,11 +405,38 @@
         const sx = px + (this.x - px) * (i / steps);
         const sy = py + (this.y - py) * (i / steps);
 
+        // Terrain first: a sample already buried in a solid lands the arrow
+        // there — it must never clip a body part "through the floor" in the
+        // same step.
+        for (const r of g.solids()) {
+          if (GEO.pointInRect(sx, sy, r)) {
+            this.x = sx; this.y = sy;
+            this.dead = true;
+            if (this.def.onLand) this.def.onLand(g, this, r);
+            if (!this.def.noStick) {
+              g.groundArrows.push({
+                x: sx, y: sy, angle: Math.atan2(this.vy, this.vx),
+                defId: this.def.id, len: this.len, ttl: 7,
+                fromPlayer: this.fromPlayer,
+              });
+            }
+            return;
+          }
+        }
+
         const rr = this.fromPlayer ? 3 * (g.sk ? g.sk.hitSize : 1) : 3;
         for (const tgt of g.targetsFor(this.fromPlayer)) {
           if (this.hitSet && this.hitSet.has(tgt)) continue;
           const hit = tgt.hitTest(sx, sy, rr);
           if (hit) {
+            // Floor forgiveness — PLAYER ONLY, by design: a shot skimming
+            // the tower floor reads as "stuck in the ground", so let it land
+            // instead of clipping a foot (dodged poison arrows used to
+            // infect players as they touched down). Shins/feet get a wider
+            // band than thighs so low arcs bury themselves. Enemies get no
+            // such mercy — the asymmetry favors the player on purpose.
+            const shin = hit.zone === 'legF2' || hit.zone === 'legB2';
+            if (tgt.isPlayer && hit.zone.indexOf('leg') === 0 && sy > tgt.anchorY - (shin ? 24 : 10)) continue;
             this.x = sx; this.y = sy;
             g.arrowHit(this, tgt, hit, sx, sy);
             if (this.hitSet) this.hitSet.add(tgt);
@@ -406,21 +447,6 @@
         if (this.fromPlayer) {
           for (const ap of g.apples) {
             if (!ap.dead && Math.hypot(ap.x - sx, ap.y - sy) < ap.r + 7) g.collectApple(ap);
-          }
-        }
-
-        for (const r of g.solids()) {
-          if (GEO.pointInRect(sx, sy, r)) {
-            this.x = sx; this.y = sy;
-            this.dead = true;
-            if (this.def.onLand) this.def.onLand(g, this, r);
-            if (!this.def.noStick) {
-              g.groundArrows.push({
-                x: sx, y: sy, angle: Math.atan2(this.vy, this.vx),
-                defId: this.def.id, len: this.len, ttl: 7,
-              });
-            }
-            return;
           }
         }
       }

@@ -119,6 +119,34 @@
       },
     },
     {
+      id: 'dwarfHealer', dwarf: true,
+      cd: (s) => Math.max(10, 15 - 1 * (s - 1)),
+      vars: (s) => ({ cd: Math.round(Math.max(10, 15 - (s - 1))), h: 10 + 4 * s }),
+      fire(game, s) {
+        const p = game.player;
+        if (!p || !p.alive) return false;
+        const wounded = Object.keys(p.hurt).some((k) => p.hurt[k] > 0.01);
+        const ailing = p.dots.length > 0 || p.stunT > 0 || p.downT > 0 || wounded;
+        if (!ailing && p.hp >= p.hpMax) return false; // nothing to mend — retry soon
+        // Cures every condition: poison/burn DoTs, stun, knockdown, wound
+        // tint. Purely additive with Mother's Egg — that regen ticks on its
+        // own 5s clock and neither effect touches the other.
+        if (ailing) {
+          p.dots = [];
+          p.stunT = 0;
+          p.downT = 0;
+          p.hurt = {};
+          game.fx.text(p.pose.head.x, p.pose.head.y - 48, RA.I18N.t('fx.cured'), '#7dc93b', 18);
+        }
+        if (p.hp < p.hpMax) p.heal(10 + 4 * s);
+        const pos = game.dwarfSlots().dwarfHealer;
+        if (pos) game.fx.spark(pos.x, pos.y - 22, '#a5e07b', 6, 150);
+        game.fx.ring(p.pose.chest.x, p.pose.chest.y, 46, '#7dc93b');
+        game.fx.spark(p.pose.chest.x, p.pose.chest.y, '#a5e07b', 8, 180);
+        return true;
+      },
+    },
+    {
       id: 'dwarfRogue', dwarf: true,
       cd: () => 18,
       vars: (s) => ({ cd: 18, d: 10 + 3 * s, st: (1 + 0.25 * s).toFixed(2) }),

@@ -380,6 +380,29 @@ body.in-game .game-only { animation: hudIn 0.55s 0.8s both; }
 }
 #arrowBadge:hover { filter: brightness(1.06); }
 
+/* TAB hint + equipped-arrow pips above the badge (2+ slots only). */
+#arrowHint {
+  position: absolute;
+  right: 20px; bottom: 64px;
+  display: flex; align-items: center; gap: 8px;
+  pointer-events: none;
+}
+.tabKey {
+  font-size: 10px; font-weight: 900; letter-spacing: 1px;
+  color: var(--cream);
+  border: 1.5px solid rgba(255, 255, 255, 0.55);
+  border-radius: 5px;
+  padding: 2px 6px 1px;
+  opacity: 0.75;
+}
+#arrowPips { display: flex; gap: 5px; align-items: center; }
+.pip {
+  width: 7px; height: 7px; border-radius: 50%;
+  background: rgba(255, 255, 255, 0.28);
+  transition: transform 0.15s, background 0.15s;
+}
+.pip.on { background: var(--yellow); transform: scale(1.35); }
+
 /* ---------- bottom bar ---------- */
 #bottomBar {
   position: absolute;
@@ -478,10 +501,26 @@ body.in-game .game-only { animation: hudIn 0.55s 0.8s both; }
   0%, 100% { color: #ffd23e; text-shadow: 0 0 8px rgba(255, 210, 62, 0.9); }
   50% { color: #ff5a3a; text-shadow: 0 0 15px rgba(255, 90, 58, 0.9); }
 }
-.skillCard.t2 { border-color: #7dc93b; }
-.skillCard.t3 { border-color: #4f8fd0; }
-.skillCard.t4 { border-color: #b07ae0; }
-.skillCard.t5 { animation: tierGoldBorder 0.9s infinite; }
+/* QA: the whole card tints with its star tier, not just the border. */
+.skillCard.t2 {
+  border-color: #7dc93b;
+  background: linear-gradient(180deg, #3e4a34, #35402c);
+  box-shadow: 0 0 12px rgba(125, 201, 59, 0.28);
+}
+.skillCard.t3 {
+  border-color: #4f8fd0;
+  background: linear-gradient(180deg, #364457, #2e3b4b);
+  box-shadow: 0 0 12px rgba(79, 143, 208, 0.32);
+}
+.skillCard.t4 {
+  border-color: #b07ae0;
+  background: linear-gradient(180deg, #453a55, #3a3047);
+  box-shadow: 0 0 14px rgba(176, 122, 224, 0.38);
+}
+.skillCard.t5 {
+  background: linear-gradient(180deg, #4f4530, #443a26);
+  animation: tierGoldBorder 0.9s infinite;
+}
 @keyframes tierGoldBorder {
   0%, 100% { border-color: #ffd23e; box-shadow: 0 0 14px rgba(255, 210, 62, 0.45); }
   50% { border-color: #ff5a3a; box-shadow: 0 0 20px rgba(255, 90, 58, 0.55); }
@@ -847,6 +886,21 @@ body.in-game .game-only { display: flex !important; }
   box-shadow: 0 3px 10px rgba(0, 0, 0, 0.3);
 }
 .titleSub:hover { filter: brightness(1.07); }
+/* QA: shop reads vivid yellow, upgrades vivid blue. */
+#shopBtn {
+  background: linear-gradient(160deg, #ffd23e, #f09c1f);
+  color: #3a2a04;
+  border: 2px solid #ffe89a;
+  box-shadow: 0 3px 12px rgba(240, 166, 60, 0.45);
+}
+#upgradeBtn {
+  background: linear-gradient(160deg, #58b0f5, #2d6fd6);
+  color: #ffffff;
+  border: 2px solid #a8d4ff;
+  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.35);
+  box-shadow: 0 3px 12px rgba(70, 140, 220, 0.45);
+}
+.setBtn.mini { padding: 6px 10px; font-size: 11px; margin-left: 8px; }
 
 /* ---------- Archer Shop modal (3-column catalog) ---------- */
 #shopGrid {
@@ -971,6 +1025,7 @@ body.in-game .game-only { display: flex !important; }
   #skillChips { top: 78px; }
   .chip { font-size: 9px; }
   #arrowBadge { padding: 6px 10px; font-size: 12px; }
+  #arrowHint { bottom: 56px; }
   #bestBanner { font-size: 40px; }
 }
 
@@ -1026,7 +1081,7 @@ body.in-game .game-only { display: flex !important; }
 #overlay {
   position: fixed; inset: 0;
   background: rgba(20, 20, 20, 0.72);
-  display: flex; align-items: center; justify-content: center;
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
   z-index: 50;
 }
 #modalBox {
@@ -1081,11 +1136,17 @@ select.setBtn { appearance: auto; }
 }
 
 /* death screen */
-.deathBox { padding: 10px 20px; }
-.deathTitle { font-size: 44px; color: var(--red); letter-spacing: 3px; margin-bottom: 18px; }
-.deathScore { font-size: 26px; margin: 6px 0; }
-.deathBest { font-size: 18px; color: var(--yellow); margin: 6px 0; }
-.deathSkulls { font-size: 18px; color: var(--cream); margin: 10px 0 18px; }
-.deathTap { font-size: 13px; opacity: 0.65; letter-spacing: 2px; animation: blink 1.4s infinite; }
+.deathBox { padding: 4px 26px 10px; }
+.deathTitle { font-size: 44px; color: var(--red); letter-spacing: 3px; margin: 2px 0 16px; }
+.deathScore { font-size: 26px; margin: 4px 0; }
+.deathBest { font-size: 18px; color: var(--yellow); margin: 4px 0; }
+.deathSkulls { font-size: 18px; color: var(--cream); margin: 12px 0 6px; }
+/* QA: the continue prompt floats on the gloom under the modal box. */
+.deathTapOut {
+  margin-top: 22px;
+  font-size: 13px; color: var(--cream);
+  opacity: 0.75; letter-spacing: 3px;
+  animation: blink 1.4s infinite;
+}
 @keyframes blink { 50% { opacity: 0.2; } }
 

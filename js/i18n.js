@@ -129,6 +129,7 @@
       'shop.needMore': '{n} MORE ☠ NEEDED',
       'shop.getSkulls': '▶ +100',
       'fx.lowStamina': 'LOW STAMINA',
+      'fx.cured': 'CURED!',
       'toast.slotsFull': 'ARROW SLOTS FULL',
       'toast.unlockedRun': '{name} — THIS GAME ONLY',
       'toast.bossIncoming': '{name} INCOMING!',
@@ -187,6 +188,8 @@
       'skill.dwarfWizard.desc': 'A SEEKING HAND EVERY {cd}s ({d} DMG)',
       'skill.dwarfRogue': 'DWARF ROGUE',
       'skill.dwarfRogue.desc': 'STUNNING SHURIKEN EVERY {cd}s ({d} DMG, {st}s STUN)',
+      'skill.dwarfHealer': 'DWARF HEALER',
+      'skill.dwarfHealer.desc': 'CURES EVERY AILMENT + {h} HP EVERY {cd}s',
 
       'skill.skullCache': 'SKULL CACHE',
       'skill.skullCache.desc': '+{n} SKULLS RIGHT NOW',
@@ -199,6 +202,9 @@
 
       'settings.title': 'SETTINGS',
       'settings.sound': 'SOUND',
+      'settings.sensitivity': 'AIM SENSITIVITY',
+      'ui.tabHint': 'TAB',
+      'settings.sensReset': 'RESET',
       'settings.language': 'LANGUAGE',
       'settings.reset': 'RESET PROGRESS',
       'settings.resetConfirm': 'TAP AGAIN TO CONFIRM',

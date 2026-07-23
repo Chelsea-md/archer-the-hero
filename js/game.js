@@ -19,6 +19,7 @@
       this.lives = 0;
       this.hitStop = 0; // brief world-freeze on meaty hits (game feel)
       this.camAnim = null; // title zoom-out / zoom-in animation
+      this.dimT = 0;       // death gloom fade (grows while state is gameover)
       this.resetRogue();
 
       this.arrows = [];
@@ -79,7 +80,10 @@
     resize(w, h) {
       this.W = w; this.H = h;
       this.towerTop = h * 0.66;
-      this.towerX = GEO.clamp(w * 0.235, 150, 480);
+      // Center the battle: the tower sits so the tower→farthest-spawn span
+      // (~1100 units, see spawnDistBand) straddles the screen center — wide
+      // monitors get symmetric margins instead of a right-side void.
+      this.towerX = GEO.clamp((w - 1100) / 2, 150, w * 0.4);
       this.tower = {
         cx: this.towerX,
         half: 88,
@@ -91,8 +95,12 @@
         this.player.plat = this.tower;
       }
       for (const p of this.platforms) {
-        p.cy = GEO.clamp(p.cy, h * 0.34, h * 0.62);
         const occ = this.enemies.find((e) => e.plat === p);
+        const scale = occ && occ.boss ? occ.boss.scale : 1;
+        p.cy = GEO.clamp(
+          Math.max(p.cy, this.quiverCyFloor(p.s, scale, p.bobA)),
+          h * 0.34, h * 0.62
+        );
         const band = this.spawnDistBand(p, occ && occ.boss);
         p.cx = Math.min(GEO.clamp(p.cx, this.towerX + band.lo, this.towerX + band.hi), w - 150);
       }
@@ -158,11 +166,10 @@
       const pHand = this.towerTop - 80, pChest = this.towerTop - 76;
       const range = (v, g, h) => g > 1 ? (v / g) * Math.sqrt(Math.max(0, v * v - 2 * g * h)) : 4000;
       const gE = B.ARROW_GRAVITY * (def.gravityScale == null ? 1 : def.gravityScale);
-      const vP = B.ARROW_SPEED * (0.45 + 0.55 * 0.9);
       const vE = B.ARROW_SPEED * (def.speedScale || 1) *
         (1 - B.WEIGHT_SPEED_PENALTY * (def.stats[2] - 1));
       let hi = Math.min(
-        range(vP, B.ARROW_GRAVITY, pHand - (plat.cy - plat.s - plat.bobA - 76 * u)) * 0.85,
+        this.playerReach(pHand - (plat.cy - plat.s - plat.bobA - 76 * u)) * 0.85,
         range(vE, gE, (plat.cy - plat.s + plat.bobA - 80 * u) - pChest) * 0.9
       );
       hi = Math.max(hi, 480);
@@ -170,6 +177,41 @@
       if (menu) hi = Math.min(hi, 1050);
       const lo = Math.max(420, Math.min(menu ? 800 : 650, hi * 0.8));
       return { lo, hi };
+    }
+
+    // The range of the SHORTEST equipped arrow at a 90% draw against a
+    // target `h` units above the hand. The band follows the worst arrow so
+    // every weapon in the quiver stays usable on every spawn — a heavy
+    // quiver (mace/axe) shortens the whole battlefield instead of leaving
+    // dead weight on the Tab rotation.
+    playerReach(h) {
+      const B = RA.BAL;
+      const ids = this.runArrows && this.runArrows.length ? this.runArrows : ['default'];
+      let worst = Infinity;
+      for (const id of ids) {
+        const d = RA.ARROWS.byId[id] || RA.ARROWS.byId.default;
+        const g = B.ARROW_GRAVITY * (d.gravityScale == null ? 1 : d.gravityScale);
+        const v = B.ARROW_SPEED * (d.speedScale || 1) *
+          (1 - B.WEIGHT_SPEED_PENALTY * (d.stats[2] - 1)) * (0.45 + 0.55 * 0.9);
+        worst = Math.min(worst, g > 1 ? (v / g) * Math.sqrt(Math.max(0, v * v - 2 * g * h)) : 4000);
+      }
+      return worst;
+    }
+
+    // Platforms may not spawn higher than the WORST equipped arrow can
+    // physically lob — returns the minimum allowed platform cy (y-down).
+    quiverCyFloor(half, u, bobA) {
+      const B = RA.BAL;
+      const ids = this.runArrows && this.runArrows.length ? this.runArrows : ['default'];
+      let hMax = Infinity;
+      for (const id of ids) {
+        const d = RA.ARROWS.byId[id] || RA.ARROWS.byId.default;
+        const g = B.ARROW_GRAVITY * (d.gravityScale == null ? 1 : d.gravityScale);
+        const v = B.ARROW_SPEED * (d.speedScale || 1) *
+          (1 - B.WEIGHT_SPEED_PENALTY * (d.stats[2] - 1));
+        hMax = Math.min(hMax, g > 1 ? (0.75 * v * v) / (2 * g) : 9999);
+      }
+      return (this.towerTop - 80) - hMax + half + (bobA || 0) + 76 * (u || 1);
     }
 
     // ---------------------------------------------------------------
@@ -667,6 +709,11 @@
         boss ? Math.round(62 * Math.max(1, boss.scale * 0.92)) : 62,
         { bobA: Math.random() < 0.45 ? 8 + Math.random() * 16 : 0, bobS: 0.5 + Math.random() * 0.8 }
       );
+      // A heavy-only quiver can't lob onto high platforms — keep them low.
+      plat.cy = GEO.clamp(
+        Math.max(plat.cy, this.quiverCyFloor(plat.s, boss ? boss.scale : 1, plat.bobA)),
+        H * 0.34, H * 0.62
+      );
       const band = this.spawnDistBand(plat, boss);
       plat.cx = Math.min(this.towerX + band.lo + Math.random() * (band.hi - band.lo), W - 150);
       this.platforms = [plat];
@@ -768,6 +815,12 @@
         this.level++;
         this.pendingChoices++;
         RA.SND.play('levelup');
+        // Leveling up cleanses any poison/burn ticking on the archer.
+        const p = this.player;
+        if (p && p.alive && p.dots.length) {
+          p.dots = [];
+          this.fx.spark(p.pose.chest.x, p.pose.chest.y, '#a5e07b', 8, 170);
+        }
         need = RA.BAL.xpForNext(this.level);
         // Don't interrupt the moment: the hit-stop, HEADSHOT! text and
         // kill rings play out on screen before the skill modal opens.
@@ -888,7 +941,10 @@
       this.recordRunStats();
       S.pushLeader({ score: this.score, skulls: this.runSkulls, date: new Date().toISOString().slice(0, 10) });
       S.save();
-      RA.UI && RA.UI.showDeath(this.score, S.data.best, this.runSkulls, isNewBest);
+      // Let the gloom settle over the battlefield before the modal lands.
+      this.schedule(1.25, () => {
+        RA.UI && RA.UI.showDeath(this.score, S.data.best, this.runSkulls, isNewBest);
+      });
     }
 
     recordRunStats() {
@@ -916,6 +972,7 @@
 
     backToMenu() {
       this.state = 'menu';
+      this.dimT = 0;
       this.arrows = [];
       this.hazards = [];
       this.beams = [];
@@ -952,6 +1009,9 @@
     }
 
     currentDef() {
+      // Self-heal a stale index instead of silently firing 'default' while
+      // the badge claims something else.
+      if (this.curArrow >= this.runArrows.length || this.curArrow < 0) this.curArrow = 0;
       return RA.ARROWS.byId[this.runArrows[this.curArrow]] || RA.ARROWS.byId.default;
     }
 
@@ -1028,7 +1088,9 @@
       }
 
       const durMult = arrow.fromPlayer ? this.sk.effDur : 1;
-      if (def.dot && target.alive) target.addDot(def.dot.kind, def.dot.dps, def.dot.dur * durMult);
+      // Damage upgrades/skills fatten the DoT ticks too (poison, burn, …).
+      const dotMult = arrow.fromPlayer ? this.playerDmgMult * this.sk.dmg : 1;
+      if (def.dot && target.alive) target.addDot(def.dot.kind, def.dot.dps * dotMult, def.dot.dur * durMult);
       const stunDur = arrow.stunDur != null ? arrow.stunDur : def.stun;
       if (stunDur && target.alive) {
         target.stunT = Math.max(target.stunT, stunDur * durMult);
@@ -1159,8 +1221,9 @@
       const dx = x - a.sx, dy = y - a.sy;
       a.drag = Math.hypot(dx, dy);
       if (a.drag >= RA.BAL.MIN_DRAG_PIXELS) {
-        p.aim.active = true;
-        p.aim.angle = Math.atan2(dy, dx);
+        const ang = Math.atan2(dy, dx);
+        if (!p.aim.active) { p.aim.active = true; p.aim.angle = ang; }
+        a.targetAngle = ang; // eased toward in update() per the sensitivity setting
       }
     }
 
@@ -1282,6 +1345,7 @@
         // Keep "one game" ad unlocks equipped alongside the saved selection.
         this.runArrows = sel.concat(this.adArrows.filter((a) => !sel.includes(a)));
         this.curArrow = Math.min(this.curArrow, this.runArrows.length - 1);
+        RA.UI && RA.UI.refreshBadge(); // the nocked arrow may have changed
       }
       RA.SND.play('click');
     }
@@ -1291,6 +1355,7 @@
       if (!this.adArrows.includes(id)) this.adArrows.push(id);
       if (!this.runArrows.includes(id)) this.runArrows.push(id);
       this.curArrow = this.runArrows.indexOf(id);
+      RA.UI && RA.UI.refreshBadge(); // badge must follow the fresh unlock
       RA.UI && RA.UI.toast(RA.I18N.t('toast.unlockedRun', { name: RA.I18N.t('arrow.' + id) }));
     }
 
@@ -1359,7 +1424,10 @@
       }
 
       // Deferred level-up presentation (after the impact juice finishes).
-      if (this.pendingChoices > 0 && !(RA.UI && RA.UI.modalOpen)) {
+      // Only while alive and playing — a level-up earned in the same breath
+      // as death must not pop its card picker over the ragdoll/gloom/modal.
+      if (this.state === 'playing' && this.player && this.player.alive &&
+          this.pendingChoices > 0 && !(RA.UI && RA.UI.modalOpen)) {
         this.choiceDelay -= dt;
         if (this.choiceDelay <= 0) this.presentChoice();
       }
@@ -1371,6 +1439,15 @@
       if (p && p.alive) {
         if (this.aimP && p.aim.active && p.stunT <= 0) {
           p.aim.draw = Math.min(1, p.aim.draw + dt / this.drawTime);
+          // Aim follows the drag at the configured sensitivity (100% = instant).
+          const ta = this.aimP.targetAngle;
+          if (ta != null) {
+            const k = RA.SAVE.data.settings.sensitivity || 1;
+            let dA = ta - p.aim.angle;
+            while (dA > Math.PI) dA -= Math.PI * 2;
+            while (dA < -Math.PI) dA += Math.PI * 2;
+            p.aim.angle += dA * Math.min(1, dt * 60 * k);
+          }
         }
         // Crouching slowly drains stamina; empty tank stands you up.
         if (p.crouching) {
@@ -1410,10 +1487,34 @@
       this.hazards = this.hazards.filter((h) => !h.dead);
 
       const solids = this.solids();
+      // Once the run has ended, sweep the battlefield quickly and let the
+      // death gloom thicken.
+      if (this.state === 'gameover' || this.state === 'victory') {
+        for (const c of this.corpses) c.t = Math.max(c.t, 5.2);
+        if (this.state === 'gameover') this.dimT = Math.min(1.2, this.dimT + dt);
+      }
       for (const c of this.corpses) c.step(dt, solids, this.W, this.H);
       this.corpses = this.corpses.filter((c) => !c.dead);
 
-      for (const ga of this.groundArrows) ga.ttl -= dt;
+      for (const ga of this.groundArrows) {
+        ga.ttl -= dt;
+        // Player-favoring asymmetry: enemies standing on a stuck dot arrow
+        // (poison/fire) get infected — the player's own floor stays safe.
+        if (!ga.fromPlayer || this.state !== 'playing') continue;
+        const gdef = RA.ARROWS.byId[ga.defId];
+        const dot = gdef && gdef.dot;
+        if (!dot) continue;
+        for (const e of this.enemies) {
+          if (!e.alive || e.jumpY < -4) continue; // hopping clears the barbs
+          if (Math.abs(e.anchorX - ga.x) < 34 && Math.abs(e.anchorY - ga.y) < 28) {
+            const fresh = !e.dots.some((d) => d.kind === dot.kind);
+            e.addDot(dot.kind, dot.dps, dot.dur * (this.sk ? this.sk.effDur : 1));
+            if (fresh) {
+              this.fx.spark(ga.x, ga.y - 8, dot.kind === 'poison' ? '#9dc93b' : '#ff9c3a', 6, 130);
+            }
+          }
+        }
+      }
       this.groundArrows = this.groundArrows.filter((g) => g.ttl > 0);
 
       for (const b of this.beams) b.t += dt;
@@ -1564,7 +1665,12 @@
         ctx.restore();
       }
       for (const hz of this.hazards) hz.draw(ctx);
-      for (const c of this.corpses) c.draw(ctx);
+      for (const c of this.corpses) {
+        // Corpses melt away over their last half second instead of popping.
+        ctx.globalAlpha = Math.max(0, Math.min(1, (6 - c.t) / 0.5));
+        c.draw(ctx);
+      }
+      ctx.globalAlpha = 1;
       for (const ap of this.apples) ap.draw(ctx);
 
       for (const e of this.enemies) {
@@ -1597,6 +1703,12 @@
       vig.addColorStop(1, 'rgba(0,0,0,0.2)');
       ctx.fillStyle = vig;
       ctx.fillRect(-20, -20, W + 40, H + 40);
+      // Death gloom: the world sinks into darkness before YOU DIED appears.
+      if (this.dimT > 0) {
+        const k = Math.min(1, this.dimT / 1.1);
+        ctx.fillStyle = 'rgba(4, 2, 8, ' + (0.62 * k * k).toFixed(3) + ')';
+        ctx.fillRect(-20, -20, W + 40, H + 40);
+      }
       ctx.restore();
     }
 
