@@ -672,23 +672,20 @@
 
     showSkillChoice(offers) {
       this.choiceOpen = true;
-      const stars = (n) => {
-        let s = '';
-        for (let i = 1; i <= 5; i++) s += i <= n ? '★' : '☆';
-        return s;
-      };
+      const stars = (n) => '★'.repeat(n); // only the stars you actually have
       const card = (o, i) => {
         const def = RA.SKILLS.byId[o.id];
         const vars = o.kind === 'bonus'
           ? { n: RA.SKILLS.SKULL_CACHE }
           : def.vars(o.star);
         const tier = o.kind === 'bonus' ? 0 : o.star;
+        // Reference layout: diamond icon riding the top edge → yellow name
+        // → description in the middle → tier stars at the bottom.
         return '<button class="skillCard t' + tier + '" data-i="' + i + '">' +
-          '<span class="skillCat ' + o.kind + '">' + t('skill.cat.' + o.kind) + '</span>' +
-          '<canvas class="skillArt" data-id="' + o.id + '" width="128" height="84"></canvas>' +
+          '<span class="skillGem"><canvas class="skillArt" data-id="' + o.id + '" width="108" height="108"></canvas></span>' +
           '<span class="skillName">' + t('skill.' + o.id) + '</span>' +
-          '<span class="skillStars tier' + tier + '">' + (o.kind === 'bonus' ? '' : stars(o.star)) + '</span>' +
           '<span class="skillDesc">' + t('skill.' + o.id + '.desc', vars) + '</span>' +
+          '<span class="skillStars tier' + tier + '">' + (o.kind === 'bonus' ? '☠' : stars(o.star)) + '</span>' +
           '</button>';
       };
       const g = this.game;
@@ -703,7 +700,7 @@
         '</div>'
       );
       document.querySelectorAll('.skillArt').forEach((cv) => {
-        RA.drawSkillArt(cv.getContext('2d'), cv.dataset.id, 128, 84);
+        RA.drawSkillArt(cv.getContext('2d'), cv.dataset.id, cv.width, cv.height);
       });
       document.querySelectorAll('.skillCard').forEach((btn) => {
         btn.addEventListener('click', () => {
