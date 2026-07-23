@@ -482,6 +482,19 @@ body.in-game .game-only { animation: hudIn 0.55s 0.8s both; }
   transition: transform 0.08s, border-color 0.08s;
 }
 .skillCard:hover { transform: translateY(-4px); border-color: var(--yellow); }
+/* Idle hint: one option waves at a hesitating player (4s cadence). */
+@keyframes cardNudge {
+  0%, 100% { transform: rotate(0) translateY(0); }
+  22% { transform: rotate(-1.7deg) translateY(-4px); }
+  55% { transform: rotate(1.2deg) translateY(-1px); }
+  80% { transform: rotate(-0.5deg); }
+}
+.skillCard.nudge { animation: cardNudge 0.55s ease-in-out; }
+/* The level-up modal wears the same diagonal weave as the buttons. */
+#modalBox:has(.skillBox) {
+  background-image: repeating-linear-gradient(-45deg,
+    rgba(255, 255, 255, 0.028) 0 7px, rgba(255, 255, 255, 0) 7px 16px);
+}
 .skillCat {
   font-size: 9px; letter-spacing: 2px;
   padding: 2px 8px; border-radius: 4px;
@@ -537,7 +550,7 @@ body.in-game .game-only { animation: hudIn 0.55s 0.8s both; }
 .rerollBtn {
   margin-top: 18px;
   background: transparent;
-  border: 2px solid var(--yellow);
+  border: 2px solid transparent;
   color: var(--yellow);
   border-radius: 8px;
   padding: 8px 22px;
