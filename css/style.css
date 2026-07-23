@@ -4,6 +4,14 @@
    ============================================================ */
 * { margin: 0; padding: 0; box-sizing: border-box; }
 
+/* ---------- font: ELAND Nice M everywhere ---------- */
+@font-face {
+  font-family: 'ELAND Nice';
+  src: url('../fonts/ELAND_Nice_M.woff?v=1') format('woff');
+  font-weight: normal;
+  font-display: swap;
+}
+
 :root {
   --red: #e0453c;
   --blue: #4f8fd0;
@@ -17,7 +25,7 @@ html, body {
   width: 100%; height: 100%;
   overflow: hidden;
   background: #3b3b3b;
-  font-family: "Arial Black", Impact, "Segoe UI", sans-serif;
+  font-family: 'ELAND Nice', "Arial Black", Impact, "Segoe UI", sans-serif;
   user-select: none;
   -webkit-user-select: none;
   touch-action: none;
@@ -886,6 +894,26 @@ body.in-game .game-only { display: flex !important; }
   box-shadow: 0 3px 10px rgba(0, 0, 0, 0.3);
 }
 .titleSub:hover { filter: brightness(1.07); }
+/* Subtle diagonal weave on the chunky buttons. */
+#startBtn, .titleSub, #jumpBtn, #crouchBtn, .setBtn, .rerollBtn {
+  position: relative;
+  overflow: hidden;
+}
+#startBtn::after, .titleSub::after, #jumpBtn::after, #crouchBtn::after,
+.setBtn::after, .rerollBtn::after {
+  content: '';
+  position: absolute; inset: 0;
+  pointer-events: none;
+  border-radius: inherit;
+  background: repeating-linear-gradient(-45deg,
+    rgba(0, 0, 0, 0.05) 0 5px, rgba(0, 0, 0, 0) 5px 11px);
+}
+/* colored faces read better with light strokes */
+#startBtn::after, #shopBtn::after, #upgradeBtn::after {
+  background: repeating-linear-gradient(-45deg,
+    rgba(255, 255, 255, 0.10) 0 5px, rgba(255, 255, 255, 0) 5px 11px);
+}
+
 /* QA: shop reads vivid yellow, upgrades vivid blue. */
 #shopBtn {
   background: linear-gradient(160deg, #ffd23e, #f09c1f);
