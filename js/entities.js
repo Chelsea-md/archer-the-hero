@@ -417,6 +417,7 @@
               g.groundArrows.push({
                 x: sx, y: sy, angle: Math.atan2(this.vy, this.vx),
                 defId: this.def.id, len: this.len, ttl: 7,
+                fromPlayer: this.fromPlayer,
               });
             }
             return;
@@ -428,13 +429,14 @@
           if (this.hitSet && this.hitSet.has(tgt)) continue;
           const hit = tgt.hitTest(sx, sy, rr);
           if (hit) {
-            // Floor forgiveness: a shot skimming the surface the target
-            // stands on reads as "stuck in the ground", so let it land there
-            // instead of clipping a foot — dodged poison arrows used to
-            // infect players as they touched down beside them. Shins/feet
-            // get a wider band than thighs so low arcs bury themselves.
+            // Floor forgiveness — PLAYER ONLY, by design: a shot skimming
+            // the tower floor reads as "stuck in the ground", so let it land
+            // instead of clipping a foot (dodged poison arrows used to
+            // infect players as they touched down). Shins/feet get a wider
+            // band than thighs so low arcs bury themselves. Enemies get no
+            // such mercy — the asymmetry favors the player on purpose.
             const shin = hit.zone === 'legF2' || hit.zone === 'legB2';
-            if (hit.zone.indexOf('leg') === 0 && sy > tgt.anchorY - (shin ? 24 : 10)) continue;
+            if (tgt.isPlayer && hit.zone.indexOf('leg') === 0 && sy > tgt.anchorY - (shin ? 24 : 10)) continue;
             this.x = sx; this.y = sy;
             g.arrowHit(this, tgt, hit, sx, sy);
             if (this.hitSet) this.hitSet.add(tgt);

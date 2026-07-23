@@ -1416,7 +1416,25 @@
       for (const c of this.corpses) c.step(dt, solids, this.W, this.H);
       this.corpses = this.corpses.filter((c) => !c.dead);
 
-      for (const ga of this.groundArrows) ga.ttl -= dt;
+      for (const ga of this.groundArrows) {
+        ga.ttl -= dt;
+        // Player-favoring asymmetry: enemies standing on a stuck dot arrow
+        // (poison/fire) get infected — the player's own floor stays safe.
+        if (!ga.fromPlayer || this.state !== 'playing') continue;
+        const gdef = RA.ARROWS.byId[ga.defId];
+        const dot = gdef && gdef.dot;
+        if (!dot) continue;
+        for (const e of this.enemies) {
+          if (!e.alive || e.jumpY < -4) continue; // hopping clears the barbs
+          if (Math.abs(e.anchorX - ga.x) < 34 && Math.abs(e.anchorY - ga.y) < 28) {
+            const fresh = !e.dots.some((d) => d.kind === dot.kind);
+            e.addDot(dot.kind, dot.dps, dot.dur * (this.sk ? this.sk.effDur : 1));
+            if (fresh) {
+              this.fx.spark(ga.x, ga.y - 8, dot.kind === 'poison' ? '#9dc93b' : '#ff9c3a', 6, 130);
+            }
+          }
+        }
+      }
       this.groundArrows = this.groundArrows.filter((g) => g.ttl > 0);
 
       for (const b of this.beams) b.t += dt;
