@@ -501,10 +501,26 @@ body.in-game .game-only { animation: hudIn 0.55s 0.8s both; }
   0%, 100% { color: #ffd23e; text-shadow: 0 0 8px rgba(255, 210, 62, 0.9); }
   50% { color: #ff5a3a; text-shadow: 0 0 15px rgba(255, 90, 58, 0.9); }
 }
-.skillCard.t2 { border-color: #7dc93b; }
-.skillCard.t3 { border-color: #4f8fd0; }
-.skillCard.t4 { border-color: #b07ae0; }
-.skillCard.t5 { animation: tierGoldBorder 0.9s infinite; }
+/* QA: the whole card tints with its star tier, not just the border. */
+.skillCard.t2 {
+  border-color: #7dc93b;
+  background: linear-gradient(180deg, #3e4a34, #35402c);
+  box-shadow: 0 0 12px rgba(125, 201, 59, 0.28);
+}
+.skillCard.t3 {
+  border-color: #4f8fd0;
+  background: linear-gradient(180deg, #364457, #2e3b4b);
+  box-shadow: 0 0 12px rgba(79, 143, 208, 0.32);
+}
+.skillCard.t4 {
+  border-color: #b07ae0;
+  background: linear-gradient(180deg, #453a55, #3a3047);
+  box-shadow: 0 0 14px rgba(176, 122, 224, 0.38);
+}
+.skillCard.t5 {
+  background: linear-gradient(180deg, #4f4530, #443a26);
+  animation: tierGoldBorder 0.9s infinite;
+}
 @keyframes tierGoldBorder {
   0%, 100% { border-color: #ffd23e; box-shadow: 0 0 14px rgba(255, 210, 62, 0.45); }
   50% { border-color: #ff5a3a; box-shadow: 0 0 20px rgba(255, 90, 58, 0.55); }

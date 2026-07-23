@@ -10,7 +10,7 @@
     ARROW_GRAVITY: 1150,         // px/s^2 applied to arrows
     RAGDOLL_GRAVITY: 1600,       // px/s^2 applied to corpses
     ARROW_SPEED: 1350,           // muzzle speed at full draw, weight 1
-    WEIGHT_SPEED_PENALTY: 0.08,  // each weight point above 1 slows the arrow
+    WEIGHT_SPEED_PENALTY: 0.04,  // each weight point above 1 slows the arrow (0.08 made maces unable to reach anything)
     MIN_DRAW_TO_FIRE: 0.15,      // release below this cancels the shot
     MIN_DRAG_PIXELS: 12,         // drag shorter than this cancels the shot
 

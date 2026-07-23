@@ -479,6 +479,7 @@
       $('overlay').classList.add('hidden');
       $('modalBox').classList.remove('bare');
       $('modalBox').innerHTML = '';
+      document.querySelectorAll('.deathTapOut').forEach((el) => el.remove());
       this._resetArmed = false;
     },
 

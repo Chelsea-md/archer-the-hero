@@ -95,8 +95,12 @@
         this.player.plat = this.tower;
       }
       for (const p of this.platforms) {
-        p.cy = GEO.clamp(p.cy, h * 0.34, h * 0.62);
         const occ = this.enemies.find((e) => e.plat === p);
+        const scale = occ && occ.boss ? occ.boss.scale : 1;
+        p.cy = GEO.clamp(
+          Math.max(p.cy, this.quiverCyFloor(p.s, scale, p.bobA)),
+          h * 0.34, h * 0.62
+        );
         const band = this.spawnDistBand(p, occ && occ.boss);
         p.cx = Math.min(GEO.clamp(p.cx, this.towerX + band.lo, this.towerX + band.hi), w - 150);
       }
@@ -162,11 +166,10 @@
       const pHand = this.towerTop - 80, pChest = this.towerTop - 76;
       const range = (v, g, h) => g > 1 ? (v / g) * Math.sqrt(Math.max(0, v * v - 2 * g * h)) : 4000;
       const gE = B.ARROW_GRAVITY * (def.gravityScale == null ? 1 : def.gravityScale);
-      const vP = B.ARROW_SPEED * (0.45 + 0.55 * 0.9);
       const vE = B.ARROW_SPEED * (def.speedScale || 1) *
         (1 - B.WEIGHT_SPEED_PENALTY * (def.stats[2] - 1));
       let hi = Math.min(
-        range(vP, B.ARROW_GRAVITY, pHand - (plat.cy - plat.s - plat.bobA - 76 * u)) * 0.85,
+        this.playerReach(pHand - (plat.cy - plat.s - plat.bobA - 76 * u)) * 0.85,
         range(vE, gE, (plat.cy - plat.s + plat.bobA - 80 * u) - pChest) * 0.9
       );
       hi = Math.max(hi, 480);
@@ -174,6 +177,39 @@
       if (menu) hi = Math.min(hi, 1050);
       const lo = Math.max(420, Math.min(menu ? 800 : 650, hi * 0.8));
       return { lo, hi };
+    }
+
+    // The longest range any EQUIPPED arrow manages at a 90% draw against a
+    // target `h` units above the hand — a heavy-only quiver (mace/axe)
+    // shortens the whole battlefield instead of becoming useless.
+    playerReach(h) {
+      const B = RA.BAL;
+      const ids = this.runArrows && this.runArrows.length ? this.runArrows : ['default'];
+      let best = 0;
+      for (const id of ids) {
+        const d = RA.ARROWS.byId[id] || RA.ARROWS.byId.default;
+        const g = B.ARROW_GRAVITY * (d.gravityScale == null ? 1 : d.gravityScale);
+        const v = B.ARROW_SPEED * (d.speedScale || 1) *
+          (1 - B.WEIGHT_SPEED_PENALTY * (d.stats[2] - 1)) * (0.45 + 0.55 * 0.9);
+        best = Math.max(best, g > 1 ? (v / g) * Math.sqrt(Math.max(0, v * v - 2 * g * h)) : 4000);
+      }
+      return best;
+    }
+
+    // Platforms may not spawn higher than the quiver can physically lob —
+    // returns the minimum allowed platform cy (y grows downward).
+    quiverCyFloor(half, u, bobA) {
+      const B = RA.BAL;
+      const ids = this.runArrows && this.runArrows.length ? this.runArrows : ['default'];
+      let hMax = 0;
+      for (const id of ids) {
+        const d = RA.ARROWS.byId[id] || RA.ARROWS.byId.default;
+        const g = B.ARROW_GRAVITY * (d.gravityScale == null ? 1 : d.gravityScale);
+        const v = B.ARROW_SPEED * (d.speedScale || 1) *
+          (1 - B.WEIGHT_SPEED_PENALTY * (d.stats[2] - 1));
+        hMax = Math.max(hMax, g > 1 ? (0.75 * v * v) / (2 * g) : 9999);
+      }
+      return (this.towerTop - 80) - hMax + half + (bobA || 0) + 76 * (u || 1);
     }
 
     // ---------------------------------------------------------------
@@ -670,6 +706,11 @@
         H * (0.34 + Math.random() * 0.28),
         boss ? Math.round(62 * Math.max(1, boss.scale * 0.92)) : 62,
         { bobA: Math.random() < 0.45 ? 8 + Math.random() * 16 : 0, bobS: 0.5 + Math.random() * 0.8 }
+      );
+      // A heavy-only quiver can't lob onto high platforms — keep them low.
+      plat.cy = GEO.clamp(
+        Math.max(plat.cy, this.quiverCyFloor(plat.s, boss ? boss.scale : 1, plat.bobA)),
+        H * 0.34, H * 0.62
       );
       const band = this.spawnDistBand(plat, boss);
       plat.cx = Math.min(this.towerX + band.lo + Math.random() * (band.hi - band.lo), W - 150);
@@ -1368,7 +1409,10 @@
       }
 
       // Deferred level-up presentation (after the impact juice finishes).
-      if (this.pendingChoices > 0 && !(RA.UI && RA.UI.modalOpen)) {
+      // Only while alive and playing — a level-up earned in the same breath
+      // as death must not pop its card picker over the ragdoll/gloom/modal.
+      if (this.state === 'playing' && this.player && this.player.alive &&
+          this.pendingChoices > 0 && !(RA.UI && RA.UI.modalOpen)) {
         this.choiceDelay -= dt;
         if (this.choiceDelay <= 0) this.presentChoice();
       }

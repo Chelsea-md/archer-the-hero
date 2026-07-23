@@ -298,10 +298,10 @@
       } },
 
     { id: 'mace', cost: 90, dmg: 40, stats: [4, 4, 5], icon: 'ball',
-      tipColor: '#7d7d7d', speedScale: 0.8, knockShift: 34, noStick: true },
+      tipColor: '#7d7d7d', speedScale: 0.95, knockShift: 34, noStick: true },
 
     { id: 'axe', cost: 100, dmg: 36, stats: [4, 3, 4], icon: 'axe',
-      tipColor: '#c9c9c9', shaft: '#9a7b4f', speedScale: 0.85, knockShift: 20, spin: 9 },
+      tipColor: '#c9c9c9', shaft: '#9a7b4f', speedScale: 0.95, knockShift: 20, spin: 9 },
 
     { id: 'magnet', cost: 'ad', dmg: 12, stats: [1, 2, 2], icon: 'magnet',
       onTick(game, arrow, dt) {
