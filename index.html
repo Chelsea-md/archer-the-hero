@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
+  <title>STICK ARCHERS</title>
+  <link rel="stylesheet" href="css/style.css?v=22" />
+</head>
+<body>
+  <canvas id="game"></canvas>
+
+  <div id="hud">
+    <!-- top-left: skull bank + rewarded ad stub -->
+    <div id="topLeft">
+      <div class="skulls"><span class="skullIcon">☠</span><span id="skullCount">0</span></div>
+      <button id="adBtn" class="adPill menu-only"><span class="adIcon">▶</span><span>+100</span></button>
+    </div>
+
+    <!-- top-right: Archer License (menu) / live score (in-game) -->
+    <div id="topRight">
+      <button id="licenseBtn" class="menu-only"><span class="licMini"></span><span data-i18n="ui.license"></span></button>
+      <span id="scoreLabel" class="score game-only"></span>
+    </div>
+
+    <!-- in-game run clock + XP bar -->
+    <div id="runHud" class="game-only">
+      <div id="runTimer">14:00</div>
+      <div id="xpWrap">
+        <div id="xpBar"><div id="xpFill"></div></div>
+        <span id="lvLabel"></span>
+      </div>
+    </div>
+
+    <!-- held skills (items + supports) -->
+    <div id="skillChips" class="game-only"></div>
+
+    <!-- title screen: story, hints, and the big buttons -->
+    <div id="titleUI" class="menu-only">
+      <div id="titleStory">
+        <div class="titleKingdom" data-i18n="title.kingdom"></div>
+        <div class="titleWar" data-i18n="title.war"></div>
+      </div>
+      <div id="titleHints">
+        <div class="tHint" data-i18n="title.hint1"></div>
+        <div class="tHint blue" data-i18n="title.hint2"></div>
+      </div>
+      <div id="titleButtons">
+        <button id="startBtn"><span class="startShine"></span><span data-i18n="ui.start"></span></button>
+        <button id="shopBtn" class="titleSub" data-i18n="ui.shop"></button>
+        <button id="upgradeBtn" class="titleSub" data-i18n="ui.upgradeBtn"></button>
+        <button id="settingsBtn" class="titleSub" data-i18n="ui.settingsBtn"></button>
+      </div>
+    </div>
+
+    <!-- player bars + jump / crouch (in-game only) -->
+    <div id="playerHud" class="game-only">
+      <span id="livesText"></span>
+      <div class="bar hp"><div id="hpFill"></div><span id="hpText">100</span></div>
+      <div class="bar sta"><div id="staFill"></div><span id="staText">100</span></div>
+      <div id="jumpWrap">
+        <button id="jumpBtn"><span data-i18n="ui.jump"></span><small id="jumpCost"></small></button>
+        <div id="standUpHint" class="hidden">◀ <span data-i18n="ui.standUp"></span></div>
+      </div>
+      <button id="crouchBtn"><span data-i18n="ui.crouch"></span><small id="crouchCost"></small></button>
+    </div>
+
+    <!-- new-best celebration banner -->
+    <div id="bestBanner" class="hidden" data-i18n="toast.newBest"></div>
+
+    <!-- in-game current arrow (click / Q to cycle) -->
+    <div id="arrowBadge" class="hidden">
+      <canvas id="badgeIcon" width="72" height="20"></canvas>
+      <span id="badgeName"></span>
+    </div>
+
+    <!-- in-game pause (opens settings) -->
+    <button id="pauseBtn" class="game-only">❚❚</button>
+
+    <!-- one-time drag gesture coachmark (first run) -->
+    <div id="dragCoach" class="game-only hidden">
+      <div class="dcDot"></div>
+      <div class="dcText" data-i18n="coach.drag"></div>
+    </div>
+
+    <div id="toast" class="hidden"></div>
+  </div>
+
+  <!-- red flash when the player takes a hit -->
+  <div id="dmgVignette"></div>
+
+  <!-- modal overlay (settings / license / ad / death / victory) -->
+  <div id="overlay" class="hidden">
+    <div id="modalBox"></div>
+  </div>
+
+  <!-- ?v= busts stale browser caches — bump it when shipping updates -->
+  <script src="js/balance.js?v=22"></script>
+  <script src="js/i18n.js?v=22"></script>
+  <script src="js/save.js?v=22"></script>
+  <script src="js/audio.js?v=22"></script>
+  <script src="js/physics.js?v=22"></script>
+  <script src="js/arrows.js?v=22"></script>
+  <script src="js/skills.js?v=22"></script>
+  <script src="js/art.js?v=22"></script>
+  <script src="js/entities.js?v=22"></script>
+  <script src="js/ai.js?v=22"></script>
+  <script src="js/game.js?v=22"></script>
+  <script src="js/ui.js?v=22"></script>
+  <script src="js/main.js?v=22"></script>
+</body>
+</html>

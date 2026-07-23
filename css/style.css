@@ -1,0 +1,1091 @@
+/* ============================================================
+   style.css — HUD layer. The canvas draws the world; the DOM
+   draws all text/menus (uppercase western-style headings).
+   ============================================================ */
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+:root {
+  --red: #e0453c;
+  --blue: #4f8fd0;
+  --yellow: #f0a63c;
+  --cream: #f5efe6;
+  --panel: #f1f1f1;
+  --ink: #3b3b3b;
+}
+
+html, body {
+  width: 100%; height: 100%;
+  overflow: hidden;
+  background: #3b3b3b;
+  font-family: "Arial Black", Impact, "Segoe UI", sans-serif;
+  user-select: none;
+  -webkit-user-select: none;
+  touch-action: none;
+}
+
+#game {
+  position: fixed;
+  inset: 0;
+  display: block;
+  cursor: crosshair;
+}
+
+/* ---------- HUD scaffolding ---------- */
+#hud {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  color: var(--cream);
+}
+#hud button, #hud .arrowRow, #hud select {
+  pointer-events: auto;
+  font-family: inherit;
+}
+button { border: none; cursor: pointer; }
+
+.hidden { display: none !important; }
+body.in-game .menu-only { display: none !important; }
+/* In-game HUD fades in as the camera finishes pulling out to the field. */
+body.in-game .game-only { animation: hudIn 0.55s 0.8s both; }
+@keyframes hudIn { from { opacity: 0; } to { opacity: 1; } }
+
+/* ---------- top-left: skulls + ad ---------- */
+#topLeft {
+  position: absolute;
+  top: 16px; left: 20px;
+  display: flex; flex-direction: column; gap: 8px;
+}
+.skulls {
+  display: flex; align-items: center; gap: 8px;
+  font-size: 26px; letter-spacing: 1px;
+  text-shadow: 0 1px 4px rgba(0, 0, 0, 0.55);
+}
+#modeTabs .tab, #topRight .score {
+  text-shadow: 0 1px 4px rgba(0, 0, 0, 0.55);
+}
+.skullIcon { font-size: 24px; }
+.adPill {
+  display: flex; align-items: center; gap: 7px;
+  background: transparent;
+  color: var(--yellow);
+  font-size: 19px; font-weight: 900;
+  letter-spacing: 1px;
+  padding: 2px 0;
+  width: fit-content;
+}
+.adIcon {
+  background: var(--yellow);
+  color: var(--ink);
+  border-radius: 5px;
+  padding: 2px 7px;
+  font-size: 13px;
+}
+.adPill:hover { filter: brightness(1.15); }
+
+/* ---------- top-center: tabs ---------- */
+#modeTabs {
+  position: absolute;
+  top: 22px; left: 50%;
+  transform: translateX(-50%);
+  display: flex; align-items: center; gap: 14px;
+  font-size: 20px;
+}
+#modeTabs .tab {
+  background: none;
+  color: var(--cream);
+  font-size: 20px; font-weight: 900;
+  letter-spacing: 2px;
+  padding-bottom: 3px;
+  opacity: 0.85;
+}
+#modeTabs .tab.active {
+  border-bottom: 3px solid var(--cream);
+  opacity: 1;
+}
+#modeTabs .tab:hover { opacity: 1; }
+#modeTabs .sep { opacity: 0.5; font-size: 18px; }
+
+/* ---------- top-right: season / score ---------- */
+#topRight {
+  position: absolute;
+  top: 18px; right: 22px;
+  display: flex; gap: 22px; align-items: baseline;
+  font-size: 20px; letter-spacing: 1px;
+  text-align: right;
+}
+#licenseBtn {
+  background: var(--panel);
+  color: var(--ink);
+  border-radius: 10px;
+  padding: 9px 16px;
+  font-size: 15px; font-weight: 900; letter-spacing: 1.5px;
+  display: flex; align-items: center; gap: 8px;
+}
+#licenseBtn:hover { filter: brightness(1.06); }
+/* miniature ID-card graphic used on the license button */
+.licMini {
+  display: inline-block;
+  width: 22px; height: 16px;
+  background: linear-gradient(135deg, #f2ead8, #e2d6bc);
+  border: 1.5px solid #c9a54e;
+  border-radius: 3px;
+  position: relative;
+  flex-shrink: 0;
+}
+.licMini::before {
+  content: '';
+  position: absolute;
+  left: 2px; top: 2.5px;
+  width: 5px; height: 7px;
+  background: #b09a5e;
+  border-radius: 1px;
+}
+.licMini::after {
+  content: '';
+  position: absolute;
+  left: 9.5px; right: 2px; top: 3.5px;
+  height: 5.5px;
+  border-top: 1.6px solid #b09a5e;
+  border-bottom: 1.6px solid #b09a5e;
+}
+
+/* ---------- arrow shop panel ---------- */
+#arrowPanel {
+  position: absolute;
+  top: 64px; right: 10px; bottom: 10px;
+  width: 285px;
+  overflow-y: auto;
+  overflow-x: visible;
+  padding: 6px 6px 6px 0;
+  scrollbar-width: thin;
+  scrollbar-color: #666 transparent;
+  pointer-events: auto;
+}
+#arrowPanel::-webkit-scrollbar { width: 6px; }
+#arrowPanel::-webkit-scrollbar-thumb { background: #666; border-radius: 3px; }
+
+.arrowRow {
+  position: relative;
+  height: 46px;
+  margin: 0 0 12px 24px;
+  border-radius: 8px;
+  background: #9a9a9a;
+  color: var(--ink);
+  display: flex; align-items: center;
+  padding: 0 12px;
+  cursor: pointer;
+  transition: transform 0.08s;
+}
+.arrowRow:hover { transform: translateX(-4px); }
+.arrowRow.owned { background: var(--panel); }
+.arrowRow.selected { outline: 3px solid var(--yellow); }
+.arrowRow.ad { background: var(--yellow); }
+.arrowRow.locked.ad { background: var(--yellow); }
+.arrowRow.locked:not(.ad) { background: #8f8f8f; color: #4a4a4a; }
+
+.arrowBadgeLeft {
+  display: flex; align-items: center; gap: 5px;
+  font-size: 12px; font-weight: 900;
+  min-width: 0;
+}
+.lockIco { font-size: 13px; }
+.lockCost { font-size: 14px; }
+.adTag {
+  background: #fff;
+  border-radius: 4px;
+  padding: 1px 5px;
+  font-size: 11px;
+}
+.watchAd { font-size: 8.5px; line-height: 1.25; letter-spacing: 0.5px; }
+
+.arrowIcon {
+  flex: 1;
+  min-width: 0;
+  height: 22px;
+  pointer-events: none;
+}
+.arrowName {
+  font-size: 15px; font-weight: 900;
+  letter-spacing: 1px;
+  white-space: nowrap;
+}
+
+/* stat dots preview (floats left of the panel, viewport-anchored so
+   the scroll container's overflow can't clip it) */
+#statPreview {
+  position: fixed;
+  right: 305px;
+  width: 150px;
+  background: rgba(40, 40, 40, 0.92);
+  border-radius: 8px;
+  padding: 8px 10px;
+  z-index: 5;
+  pointer-events: none;
+}
+.statRow { display: flex; justify-content: space-between; align-items: center; margin: 3px 0; }
+.statName { font-size: 10px; letter-spacing: 1px; }
+.statName.red { color: var(--red); }
+.statName.blue { color: var(--blue); }
+.statName.yellow { color: var(--yellow); }
+.dots { display: flex; gap: 3px; }
+.dot { width: 8px; height: 8px; border-radius: 50%; }
+.dot.red { background: var(--red); }
+.dot.blue { background: var(--blue); }
+.dot.yellow { background: var(--yellow); }
+.dot.off { background: #5a5a5a; }
+
+/* ---------- upgrades panel ---------- */
+#upgradePanel {
+  position: absolute;
+  left: 37vw; top: 24vh;
+  display: flex; flex-direction: column; gap: 11px;
+}
+.upRow { display: flex; align-items: center; gap: 14px; }
+.costPill {
+  background: var(--panel);
+  color: var(--ink);
+  border-radius: 8px;
+  min-width: 86px;
+  height: 40px;
+  font-size: 17px; font-weight: 900;
+  display: flex; align-items: center; justify-content: center; gap: 6px;
+  letter-spacing: 1px;
+}
+.costPill:hover { filter: brightness(1.08); }
+.costPill.maxed { opacity: 0.55; }
+.costPill.shake { animation: shake 0.3s; }
+@keyframes shake {
+  0%, 100% { transform: translateX(0); }
+  25% { transform: translateX(-5px); }
+  75% { transform: translateX(5px); }
+}
+.skullMini { font-size: 15px; }
+.upLabel {
+  font-size: 21px; font-weight: 900; letter-spacing: 1.5px;
+  text-shadow: 0 1px 4px rgba(0, 0, 0, 0.6), 0 0 12px rgba(0, 0, 0, 0.35);
+}
+.upLabel.red { color: var(--red); }
+.upLabel.blue { color: var(--blue); }
+.upLabel.yellow { color: var(--yellow); }
+
+/* ---------- menu hint texts ---------- */
+#menuHints { pointer-events: none; }
+.hint {
+  position: absolute; letter-spacing: 2px; font-weight: 900;
+  text-shadow: 0 1px 4px rgba(0, 0, 0, 0.6), 0 0 12px rgba(0, 0, 0, 0.35);
+}
+.controlArea {
+  left: 10vw; top: 17vh;
+  font-size: 34px;
+  color: var(--cream);
+}
+.holdRelease {
+  left: 6vw; top: 38vh;
+  font-size: 22px;
+  color: var(--cream);
+}
+.staminaHint {
+  left: 20vw; top: 29vh;
+  font-size: 20px;
+  line-height: 1.35;
+  color: var(--cream);
+}
+.staminaHint .blue { color: var(--blue); }
+
+/* ---------- player bars + jump ---------- */
+#playerHud {
+  position: absolute;
+  left: 23.5vw; bottom: 5vh;
+  transform: translateX(-50%) scale(0.8);
+  transform-origin: bottom center;
+  display: flex; flex-direction: column; align-items: center; gap: 8px;
+  pointer-events: none;
+}
+#playerHud button { pointer-events: auto; }
+.bar {
+  position: relative;
+  width: 156px; height: 27px;
+  border-radius: 6px;
+  background: rgba(0, 0, 0, 0.35);
+  overflow: hidden;
+}
+.bar div {
+  position: absolute; inset: 0;
+  width: 100%;
+  transition: width 0.15s;
+}
+.bar.hp div { background: var(--red); }
+.bar.sta div { background: var(--blue); }
+.bar span {
+  position: absolute; inset: 0;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 15px; font-weight: 900; color: #fff;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.5);
+}
+.bar.pulse { animation: pulse 0.4s; }
+@keyframes pulse {
+  0%, 100% { box-shadow: none; }
+  50% { box-shadow: 0 0 0 4px rgba(224, 69, 60, 0.8); }
+}
+#livesText { color: #f5f5f5; font-size: 14px; height: 14px; line-height: 1; letter-spacing: 1px; }
+#jumpWrap { position: relative; }
+#standUpHint {
+  position: absolute;
+  left: calc(100% + 10px);
+  top: 50%;
+  transform: translateY(-50%);
+  white-space: nowrap;
+  color: var(--yellow);
+  font-size: 19px; font-weight: 900; letter-spacing: 2px;
+  animation: blink 0.9s infinite;
+  pointer-events: none;
+}
+#jumpBtn {
+  width: 156px;
+  background: var(--panel);
+  color: #6a6a6a;
+  border-radius: 10px;
+  padding: 9px 0 7px;
+  display: flex; flex-direction: column; align-items: center; gap: 2px;
+  font-size: 19px; font-weight: 900; letter-spacing: 2px;
+}
+#jumpBtn small { font-size: 11px; color: var(--blue); letter-spacing: 1px; }
+#jumpBtn.disabled { opacity: 0.45; }
+#jumpBtn:active { transform: scale(0.96); }
+#crouchBtn {
+  width: 156px;
+  background: var(--panel);
+  color: #6a6a6a;
+  border-radius: 10px;
+  padding: 6px 0 5px;
+  display: flex; flex-direction: column; align-items: center; gap: 1px;
+  font-size: 15px; font-weight: 900; letter-spacing: 2px;
+  touch-action: none;
+}
+#crouchBtn small { font-size: 10px; color: var(--blue); letter-spacing: 1px; }
+#crouchBtn:active { transform: scale(0.96); background: #d9d9d9; }
+
+/* ---------- in-game arrow badge ---------- */
+#arrowBadge {
+  position: absolute;
+  right: 20px; bottom: 20px;
+  background: var(--panel);
+  color: var(--ink);
+  border-radius: 10px;
+  padding: 8px 14px;
+  display: flex; align-items: center; gap: 10px;
+  font-size: 15px; font-weight: 900; letter-spacing: 1px;
+  cursor: pointer;
+  pointer-events: auto;
+}
+#arrowBadge:hover { filter: brightness(1.06); }
+
+/* ---------- bottom bar ---------- */
+#bottomBar {
+  position: absolute;
+  bottom: 18px; left: 50%;
+  transform: translateX(-50%);
+  display: flex; align-items: flex-end; gap: 16px;
+}
+
+/* ---------- run clock + XP bar (in-game) ---------- */
+#runHud {
+  position: absolute;
+  top: 14px; left: 50%;
+  transform: translateX(-50%);
+  flex-direction: column; align-items: center; gap: 5px;
+  pointer-events: none;
+}
+#runTimer {
+  font-size: 26px; letter-spacing: 3px;
+  color: var(--cream);
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.5);
+}
+#xpWrap { display: flex; align-items: center; gap: 8px; }
+#xpBar {
+  width: 220px; height: 10px;
+  border-radius: 5px;
+  background: rgba(0, 0, 0, 0.4);
+  overflow: hidden;
+}
+#xpFill {
+  height: 100%; width: 0;
+  background: linear-gradient(90deg, #7dc93b, #b6d95c);
+  transition: width 0.2s;
+}
+#lvLabel { font-size: 14px; color: #b6d95c; letter-spacing: 1px; }
+
+/* ---------- held skill chips ---------- */
+#skillChips {
+  position: absolute;
+  top: 96px; left: 20px;
+  flex-direction: column; gap: 5px;
+  pointer-events: none;
+}
+.chip {
+  font-size: 10px; letter-spacing: 1px;
+  color: var(--cream);
+  background: rgba(0, 0, 0, 0.35);
+  border-radius: 5px;
+  padding: 3px 8px;
+  width: fit-content;
+}
+.chip b { color: var(--yellow); font-size: 9px; }
+.chip.support { border-left: 3px solid var(--blue); }
+.chip.item { border-left: 3px solid var(--yellow); }
+
+/* ---------- level-up skill cards ---------- */
+.skillBox { max-width: 760px; }
+.skillTitle { font-size: 32px; letter-spacing: 3px; color: #b6d95c; margin-bottom: 4px; }
+.skillSub { font-size: 13px; letter-spacing: 2px; opacity: 0.7; margin-bottom: 20px; }
+.skillRow { display: flex; gap: 14px; justify-content: center; flex-wrap: wrap; }
+.skillCard {
+  width: 200px;
+  background: #3d3d3d;
+  border: 2px solid rgba(255, 255, 255, 0.12);
+  border-radius: 12px;
+  padding: 14px 12px 16px;
+  color: var(--cream);
+  display: flex; flex-direction: column; align-items: center; gap: 8px;
+  font-family: inherit;
+  transition: transform 0.08s, border-color 0.08s;
+}
+.skillCard:hover { transform: translateY(-4px); border-color: var(--yellow); }
+.skillCat {
+  font-size: 9px; letter-spacing: 2px;
+  padding: 2px 8px; border-radius: 4px;
+  background: var(--yellow); color: var(--ink);
+}
+.skillCat.support { background: var(--blue); color: #fff; }
+.skillCat.bonus { background: #8a8a8a; color: #fff; }
+.skillArt {
+  width: 128px; height: 84px;
+  border-radius: 8px;
+  background: rgba(0, 0, 0, 0.22);
+}
+.skillName { font-size: 16px; letter-spacing: 1px; }
+.skillStars { font-size: 14px; letter-spacing: 2px; }
+.skillDesc { font-size: 11px; line-height: 1.5; letter-spacing: 0.5px; opacity: 0.85; }
+
+/* star-tier colors: ★ yellow → ★★ green → ★★★ blue → ★★★★ purple
+   → ★★★★★ blazing gold/red */
+.tier0, .tier1 { color: var(--yellow); }
+.tier2 { color: #7dc93b; }
+.tier3 { color: #4f8fd0; }
+.tier4 { color: #b07ae0; }
+.tier5 { animation: tierGold 0.9s infinite; }
+@keyframes tierGold {
+  0%, 100% { color: #ffd23e; text-shadow: 0 0 8px rgba(255, 210, 62, 0.9); }
+  50% { color: #ff5a3a; text-shadow: 0 0 15px rgba(255, 90, 58, 0.9); }
+}
+.skillCard.t2 { border-color: #7dc93b; }
+.skillCard.t3 { border-color: #4f8fd0; }
+.skillCard.t4 { border-color: #b07ae0; }
+.skillCard.t5 { animation: tierGoldBorder 0.9s infinite; }
+@keyframes tierGoldBorder {
+  0%, 100% { border-color: #ffd23e; box-shadow: 0 0 14px rgba(255, 210, 62, 0.45); }
+  50% { border-color: #ff5a3a; box-shadow: 0 0 20px rgba(255, 90, 58, 0.55); }
+}
+
+.rerollBtn {
+  margin-top: 18px;
+  background: transparent;
+  border: 2px solid var(--yellow);
+  color: var(--yellow);
+  border-radius: 8px;
+  padding: 8px 22px;
+  font-family: inherit;
+  font-size: 13px; font-weight: 900; letter-spacing: 2px;
+}
+.rerollBtn:hover { background: rgba(240, 166, 60, 0.15); }
+
+/* victory screen */
+.victoryTitle { font-size: 42px; color: #b6d95c; letter-spacing: 3px; margin-bottom: 6px; }
+.peaceLine { font-size: 15px; letter-spacing: 2px; opacity: 0.8; margin: 4px 0; font-style: italic; }
+.peaceLine.legend { color: var(--yellow); margin-bottom: 14px; }
+.archerNo { font-size: 20px; color: var(--yellow); letter-spacing: 2px; margin-bottom: 10px; }
+
+/* purchase confirm / congrats */
+.buyBox { display: flex; flex-direction: column; align-items: center; gap: 10px; }
+.buyCost { font-size: 20px; color: var(--yellow); letter-spacing: 1px; }
+.buyRow { display: flex; gap: 12px; margin-top: 8px; }
+.buyBtn { background: var(--yellow); }
+.gratsTitle {
+  font-size: 34px; color: var(--yellow); letter-spacing: 3px;
+  animation: bump 0.5s;
+}
+.gratsSub { font-size: 16px; letter-spacing: 1px; margin-bottom: 6px; }
+
+/* ---------- cinematic ending beats ---------- */
+#modalBox.bare {
+  background: transparent;
+  padding: 0;
+  min-width: 0;
+}
+.cineWrap { display: flex; flex-direction: column; align-items: center; gap: 34px; }
+.cineText {
+  font-size: 30px; font-style: italic; letter-spacing: 5px;
+  color: var(--cream);
+  text-shadow: 0 2px 14px rgba(0, 0, 0, 0.8);
+  opacity: 0;
+  animation: cineIn 2.2s forwards;
+  max-width: 80vw;
+  text-align: center;
+}
+.cineText.gold { color: var(--yellow); }
+@keyframes cineIn {
+  0% { opacity: 0; transform: translateY(14px); letter-spacing: 9px; }
+  100% { opacity: 1; transform: translateY(0); letter-spacing: 5px; }
+}
+.cineTap {
+  font-size: 12px; letter-spacing: 3px; color: var(--cream);
+  opacity: 0;
+  animation: cineTapIn 1s 1.6s forwards;
+}
+@keyframes cineTapIn { to { opacity: 0.55; } }
+
+/* finale card: each line pops in with a stagger */
+.vicPop > * { opacity: 0; animation: vicPopIn 0.45s forwards; }
+.vicPop > *:nth-child(1) { animation-delay: 0.05s; animation-duration: 0.55s; }
+.vicPop > *:nth-child(2) { animation-delay: 0.35s; }
+.vicPop > *:nth-child(3) { animation-delay: 0.55s; }
+.vicPop > *:nth-child(4) { animation-delay: 0.7s; }
+.vicPop > *:nth-child(5) { animation-delay: 0.85s; }
+.vicPop > *:nth-child(6) { animation-delay: 1.0s; }
+.vicPop > *:nth-child(n+7) { animation-delay: 1.3s; }
+@keyframes vicPopIn {
+  0% { opacity: 0; transform: scale(1.7); }
+  60% { opacity: 1; transform: scale(0.94); }
+  100% { opacity: 1; transform: scale(1); }
+}
+
+/* ---------- Archer License card ---------- */
+.licCard {
+  position: relative;
+  width: 430px; max-width: 82vw;
+  background: linear-gradient(135deg, #f2ead8, #e2d6bc);
+  border: 3px solid #c9a54e;
+  border-radius: 14px;
+  padding: 14px 16px 40px;
+  color: var(--ink);
+  overflow: hidden;
+  box-shadow: 0 6px 22px rgba(0, 0, 0, 0.45);
+  text-align: left;
+}
+.licShine {
+  position: absolute;
+  top: -30%; left: -130%;
+  width: 55%; height: 160%;
+  background: linear-gradient(105deg, transparent, rgba(255, 255, 255, 0.55), transparent);
+  transform: skewX(-18deg);
+  animation: licShine 3s ease-in-out infinite;
+  pointer-events: none;
+}
+@keyframes licShine {
+  0% { left: -130%; }
+  45% { left: 140%; }
+  100% { left: 140%; }
+}
+.licHead {
+  display: flex; justify-content: space-between; align-items: baseline;
+  font-size: 17px; font-weight: 900; letter-spacing: 2px;
+  border-bottom: 2px solid #c9a54e;
+  padding-bottom: 8px; margin-bottom: 12px;
+}
+.licNo { font-size: 12px; color: #8a6d2f; letter-spacing: 1px; }
+.licBody { display: flex; gap: 16px; align-items: flex-start; }
+.licPhoto {
+  border: 2px solid #b99a48;
+  border-radius: 4px;
+  line-height: 0;
+  background: #efe8d8;
+}
+.licStats { flex: 1; }
+.licSeal {
+  position: absolute;
+  right: 16px; bottom: 4px;
+  width: 54px; height: 54px;
+  border: 3px double #c0392b;
+  border-radius: 50%;
+  color: #c0392b;
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  font-size: 16px; line-height: 1;
+  transform: rotate(-14deg);
+  opacity: 0.55;
+  pointer-events: none;
+}
+.licSeal span { font-size: 7px; letter-spacing: 1px; margin-top: 2px; }
+
+/* Archer License rows (inside the card: dark ink on parchment) */
+.licRow {
+  display: flex; justify-content: space-between; align-items: center; gap: 24px;
+  padding: 6px 2px;
+  font-size: 13px; letter-spacing: 1px;
+  border-bottom: 1px solid rgba(90, 70, 30, 0.18);
+  color: #4a3d26;
+}
+.licLabel { display: flex; flex-direction: column; line-height: 1.25; }
+.licLabel small { font-size: 9px; letter-spacing: 0.5px; opacity: 0.65; }
+/* fixed value column: every number starts at the same left edge */
+.licRow b {
+  color: #a3541e;
+  width: 62px;
+  flex-shrink: 0;
+  text-align: left;
+  white-space: nowrap;
+}
+.licSub { font-size: 13px; letter-spacing: 2px; margin: 16px 0 8px; opacity: 0.7; }
+.licLegends { max-height: 30vh; overflow-y: auto; }
+.licLegendRow {
+  font-size: 12.5px; letter-spacing: 0.5px;
+  padding: 6px 4px;
+  color: var(--cream);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+  display: flex; justify-content: space-between; gap: 16px;
+  text-align: left;
+}
+.licDate { color: #888; font-size: 11px; }
+.licEmpty { opacity: 0.55; font-size: 13px; letter-spacing: 1px; margin: 12px 0; }
+
+/* ---------- pause button (in-game only) ---------- */
+.game-only { display: none !important; }
+body.in-game .game-only { display: flex !important; }
+#pauseBtn {
+  position: absolute;
+  right: 20px; bottom: 84px;
+  width: 48px; height: 48px;
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.14);
+  color: var(--cream);
+  font-size: 17px;
+  align-items: center; justify-content: center;
+  pointer-events: auto;
+}
+#pauseBtn:hover { background: rgba(255, 255, 255, 0.24); }
+
+/* ---------- new best banner ---------- */
+#bestBanner {
+  position: absolute;
+  top: 24vh; left: 50%;
+  transform: translateX(-50%) scale(0.5);
+  color: var(--yellow);
+  font-size: 54px; font-weight: 900; letter-spacing: 4px;
+  text-shadow: 0 0 22px rgba(240, 166, 60, 0.65), 0 3px 8px rgba(0, 0, 0, 0.6);
+  opacity: 0;
+  pointer-events: none;
+  z-index: 20;
+}
+#bestBanner.show { animation: bestPop 2.6s forwards; }
+@keyframes bestPop {
+  0% { opacity: 0; transform: translateX(-50%) scale(0.4) rotate(-4deg); }
+  10% { opacity: 1; transform: translateX(-50%) scale(1.25) rotate(2deg); }
+  18% { transform: translateX(-50%) scale(1) rotate(-1deg); }
+  80% { opacity: 1; }
+  100% { opacity: 0; transform: translateX(-50%) scale(1.06); }
+}
+
+/* ---------- apples tutorial ---------- */
+.appleBox { max-width: 640px; }
+.appleTitle { font-size: 30px; letter-spacing: 3px; margin-bottom: 10px; }
+.appleTitle .red { color: var(--red); }
+.appleTitle .yellow { color: var(--yellow); }
+.appleTitle .green { color: #7dc93b; }
+.appleSub { font-size: 17px; letter-spacing: 2px; margin-bottom: 22px; }
+.appleGrid {
+  display: flex;
+  gap: 26px;
+  justify-content: center;
+  align-items: flex-start;
+  flex-wrap: wrap;
+}
+.appleCell { display: flex; flex-direction: column; align-items: center; gap: 4px; min-width: 110px; }
+.appleIcon { width: 90px; height: 72px; }
+.appleLine { font-size: 14px; font-weight: 900; letter-spacing: 1px; }
+.appleLine.red { color: var(--red); }
+.appleLine.blue { color: var(--blue); }
+.appleLine.yellow { color: var(--yellow); }
+
+/* end-of-run build recap */
+.recapTitle {
+  font-size: 11px; letter-spacing: 2px;
+  opacity: 0.65;
+  margin: 12px 0 7px;
+}
+.recapRow {
+  display: flex; flex-wrap: wrap; justify-content: center; gap: 6px;
+  max-width: 420px;
+  margin: 0 auto 4px;
+}
+.recapChip {
+  font-size: 10.5px; font-weight: 900; letter-spacing: 0.5px;
+  background: rgba(255, 255, 255, 0.08);
+  border-radius: 6px;
+  padding: 4px 9px;
+  color: var(--cream);
+  white-space: nowrap;
+}
+.recapChip b { font-size: 9.5px; }
+
+/* first-run drag coachmark */
+#dragCoach.hidden { display: none !important; } /* outranks the .game-only reveal */
+#dragCoach {
+  position: absolute;
+  left: 26vw; top: 34vh;
+  flex-direction: column; align-items: flex-start; gap: 14px;
+  pointer-events: none;
+  z-index: 10;
+}
+.dcDot {
+  width: 22px; height: 22px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.95);
+  box-shadow: 0 0 14px rgba(255, 255, 255, 0.7);
+  animation: dcMove 2.4s ease-in-out infinite;
+}
+@keyframes dcMove {
+  0% { transform: translate(0, 0) scale(0.6); opacity: 0; }
+  14% { transform: translate(0, 0) scale(1.3); opacity: 1; }   /* press */
+  22% { transform: translate(0, 0) scale(1); opacity: 1; }
+  60% { transform: translate(110px, -85px) scale(1); opacity: 1; } /* drag */
+  72% { transform: translate(110px, -85px) scale(1.9); opacity: 0; } /* release */
+  100% { transform: translate(110px, -85px) scale(1.9); opacity: 0; }
+}
+.dcText {
+  font-size: 14px; font-weight: 900; letter-spacing: 2px;
+  color: var(--cream);
+  text-shadow: 0 1px 5px rgba(0, 0, 0, 0.65);
+  animation: blink 1.5s infinite;
+}
+
+/* death screen new-best line */
+.deathNew {
+  color: var(--yellow);
+  font-size: 24px; letter-spacing: 3px;
+  margin-bottom: 8px;
+  animation: blink 1.1s infinite;
+}
+
+/* ---------- title screen ---------- */
+#titleUI { pointer-events: none; }
+#titleStory {
+  position: absolute;
+  top: 10vh; left: 50%;
+  transform: translateX(-50%);
+  text-align: center;
+  width: min(90vw, 760px);
+}
+.titleKingdom {
+  font-size: clamp(17px, 2.5vw, 29px);
+  color: var(--cream);
+  letter-spacing: 2px;
+  text-shadow: 0 2px 8px rgba(0, 0, 0, 0.55);
+}
+.titleWar {
+  font-size: clamp(13px, 1.8vw, 20px);
+  color: var(--yellow);
+  letter-spacing: 2px;
+  margin-top: 10px;
+  text-shadow: 0 2px 6px rgba(0, 0, 0, 0.55);
+}
+#titleHints {
+  position: absolute;
+  bottom: 23vh; left: 50%;
+  transform: translateX(-50%);
+  text-align: center;
+}
+.tHint {
+  font-size: clamp(11px, 1.3vw, 15px);
+  letter-spacing: 2px; font-weight: 900;
+  color: var(--cream);
+  margin: 4px 0;
+  text-shadow: 0 1px 4px rgba(0, 0, 0, 0.6);
+}
+.tHint.blue { color: #7bb8f0; }
+#titleButtons {
+  position: absolute;
+  bottom: 8vh; left: 50%;
+  transform: translateX(-50%);
+  display: flex; align-items: center; gap: 14px;
+  pointer-events: auto;
+}
+#startBtn {
+  position: relative;
+  overflow: hidden;
+  padding: 15px 46px 14px;
+  font-family: inherit;
+  font-size: clamp(19px, 2.2vw, 26px); font-weight: 900; letter-spacing: 4px;
+  color: #ffffff;
+  background: linear-gradient(160deg, #57c94f, #2e9a4a 55%, #1f7a3a);
+  border: 2px solid #a8f07a;
+  border-radius: 14px;
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.4);
+  animation: startPulse 1.6s ease-in-out infinite;
+}
+#startBtn:hover { filter: brightness(1.12); }
+#startBtn:active { transform: scale(0.96); }
+@keyframes startPulse {
+  0%, 100% { box-shadow: 0 0 14px rgba(87, 201, 79, 0.5), 0 4px 14px rgba(0, 0, 0, 0.35); }
+  50% { box-shadow: 0 0 30px rgba(140, 240, 122, 0.85), 0 4px 14px rgba(0, 0, 0, 0.35); }
+}
+.startShine {
+  position: absolute;
+  top: -30%; left: -140%;
+  width: 60%; height: 160%;
+  background: linear-gradient(105deg, transparent, rgba(255, 255, 255, 0.55), transparent);
+  transform: skewX(-18deg);
+  animation: licShine 2.4s ease-in-out infinite;
+  pointer-events: none;
+}
+.titleSub {
+  white-space: nowrap;
+  padding: 12px 20px;
+  font-family: inherit;
+  font-size: clamp(12px, 1.4vw, 16px); font-weight: 900; letter-spacing: 2px;
+  color: var(--ink);
+  background: var(--panel);
+  border-radius: 12px;
+  box-shadow: 0 3px 10px rgba(0, 0, 0, 0.3);
+}
+.titleSub:hover { filter: brightness(1.07); }
+
+/* ---------- Archer Shop modal (3-column catalog) ---------- */
+#shopGrid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(150px, 200px));
+  gap: 12px;
+  max-height: 58vh;
+  overflow-y: auto;
+  padding: 4px 6px 4px 2px;
+  scrollbar-width: thin;
+}
+.shopCell {
+  background: #3d3d3d;
+  border: 2px solid rgba(255, 255, 255, 0.12);
+  border-radius: 10px;
+  padding: 10px 8px 8px;
+  cursor: pointer;
+  display: flex; flex-direction: column; align-items: center; gap: 5px;
+  transition: transform 0.08s, border-color 0.08s;
+}
+.shopCell:hover { transform: translateY(-2px); border-color: var(--yellow); }
+.shopCell.selected { border-color: #7dc93b; background: #35422f; }
+.shopCell.adCell { border-color: rgba(240, 166, 60, 0.7); background: #46392a; }
+.shopCell.locked { opacity: 0.9; }
+.shopIcon { width: 120px; height: 28px; }
+.shopName { font-size: 13px; letter-spacing: 1px; color: var(--cream); }
+.shopDots div { display: flex; gap: 2.5px; justify-content: center; margin: 1.5px 0; }
+.shopDots .dot { width: 6px; height: 6px; }
+.shopState {
+  font-size: 11px; font-weight: 900; letter-spacing: 1px;
+  color: var(--yellow);
+  min-height: 24px;
+  line-height: 1.25;
+  display: flex; align-items: center; justify-content: center; text-align: center;
+  gap: 5px;
+}
+/* compact two-line ad label — never overlaps the ▶ tag */
+.shopState .adTxt {
+  font-size: 8.5px;
+  line-height: 1.3;
+  letter-spacing: 0.5px;
+  text-align: left;
+  white-space: nowrap;
+}
+.shopState .adTag { font-size: 9px; padding: 1px 4px; flex-shrink: 0; }
+.shopState .eq { color: #7dc93b; }
+.shopState .own { color: #9a9a9a; }
+
+/* shop stat-color legend */
+.shopLegend {
+  display: flex; justify-content: center; gap: 22px;
+  margin: -6px 0 12px;
+  font-size: 11px; font-weight: 900; letter-spacing: 1.5px;
+  color: var(--cream);
+}
+.shopLegend span { display: flex; align-items: center; gap: 6px; }
+.shopLegend .dot { display: inline-block; }
+
+/* holographic green action button (START / BUY) */
+.holoBtn {
+  position: relative;
+  overflow: hidden;
+  padding: 10px 30px;
+  font-family: inherit;
+  font-size: 15px; font-weight: 900; letter-spacing: 2px;
+  color: #ffffff;
+  background: linear-gradient(160deg, #57c94f, #2e9a4a 55%, #1f7a3a);
+  border: 2px solid #a8f07a;
+  border-radius: 10px;
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.4);
+  animation: startPulse 1.6s ease-in-out infinite;
+}
+.holoBtn:hover { filter: brightness(1.12); }
+.holoBtn:active { transform: scale(0.96); }
+
+/* pause menu / go-home confirm */
+.pauseCol { display: flex; flex-direction: column; gap: 10px; min-width: 240px; }
+.pauseCol .holoBtn { width: 100%; margin-top: 6px; }
+.homeBox { max-width: 340px; }
+.homeTitle { font-size: 20px; letter-spacing: 2px; color: var(--red); margin-bottom: 8px; }
+.homeSub { font-size: 14px; letter-spacing: 1px; opacity: 0.85; margin-bottom: 18px; }
+.buyRow .setBtn.danger { width: auto; }
+.buyShort {
+  font-size: 13px; font-weight: 900; letter-spacing: 1px;
+  color: var(--red);
+  animation: blink 1.2s infinite;
+}
+.buyDead { opacity: 0.4; cursor: not-allowed; }
+.adGold { background: var(--yellow); }
+.cantAfford { color: var(--red); }
+
+/* upgrade modal */
+#upModalList {
+  display: flex; flex-direction: column; gap: 10px;
+  max-height: 58vh; overflow-y: auto;
+  padding: 2px 6px;
+}
+
+/* ---------- compact layout (PLAY3 932x587 and small windows) ---------- */
+@media (max-width: 1000px), (max-height: 640px) {
+  .skulls { font-size: 20px; }
+  .adPill { font-size: 15px; }
+  /* card-only license button so it can't collide with the title text */
+  #licenseBtn span[data-i18n] { display: none; }
+  #licenseBtn { padding: 8px 10px; }
+  #licenseBtn .licMini { width: 26px; height: 19px; }
+  #runTimer { font-size: 20px; }
+  #xpBar { width: 170px; height: 8px; }
+  #titleStory { top: 7vh; }
+  #titleHints { bottom: 26vh; }
+  #startBtn { padding: 11px 32px 10px; }
+  .titleSub { padding: 9px 14px; }
+  #playerHud { transform: translateX(-50%) scale(0.68); transform-origin: bottom center; }
+  #modalBox { padding: 16px 18px; max-height: 92vh; overflow-y: auto; }
+  .skillCard { width: 168px; padding: 10px 8px 12px; }
+  .skillArt { width: 108px; height: 71px; }
+  #shopGrid { grid-template-columns: repeat(3, minmax(130px, 168px)); gap: 9px; }
+  .licCard { width: 380px; }
+  .victoryTitle { font-size: 32px; }
+  .deathTitle { font-size: 34px; }
+  .cineText { font-size: 22px; }
+  #skillChips { top: 78px; }
+  .chip { font-size: 9px; }
+  #arrowBadge { padding: 6px 10px; font-size: 12px; }
+  #bestBanner { font-size: 40px; }
+}
+
+/* ---------- juice: bumps, glows, damage vignette ---------- */
+.bump { animation: bump 0.35s; }
+@keyframes bump {
+  0% { transform: scale(1); }
+  30% { transform: scale(1.35); }
+  100% { transform: scale(1); }
+}
+#scoreLabel.bump { display: inline-block; transform-origin: right center; }
+#xpBar.glow { animation: xpGlow 0.45s; }
+@keyframes xpGlow {
+  0% { box-shadow: 0 0 0 0 rgba(182, 217, 92, 0); }
+  35% { box-shadow: 0 0 12px 3px rgba(182, 217, 92, 0.8); }
+  100% { box-shadow: 0 0 0 0 rgba(182, 217, 92, 0); }
+}
+#dmgVignette {
+  position: fixed; inset: 0;
+  pointer-events: none;
+  background: radial-gradient(ellipse at center, transparent 55%, rgba(224, 69, 60, 0.45) 100%);
+  opacity: 0;
+  z-index: 40;
+}
+#dmgVignette.show { animation: vignette 0.4s; }
+@keyframes vignette {
+  0% { opacity: 0; }
+  20% { opacity: 1; }
+  100% { opacity: 0; }
+}
+
+/* ---------- toast ---------- */
+#toast {
+  position: absolute;
+  top: 15vh; left: 50%;
+  transform: translateX(-50%);
+  color: var(--yellow);
+  font-size: 24px; letter-spacing: 2px;
+  text-shadow: 0 2px 6px rgba(0, 0, 0, 0.6);
+  opacity: 0;
+  z-index: 60; /* above modal overlays so feedback is never swallowed */
+}
+#toast.show { animation: toastIn 1.7s forwards; }
+@keyframes toastIn {
+  0% { opacity: 0; transform: translateX(-50%) scale(0.7); }
+  12% { opacity: 1; transform: translateX(-50%) scale(1.08); }
+  20% { transform: translateX(-50%) scale(1); }
+  80% { opacity: 1; }
+  100% { opacity: 0; }
+}
+
+/* ---------- modal overlay ---------- */
+#overlay {
+  position: fixed; inset: 0;
+  background: rgba(20, 20, 20, 0.72);
+  display: flex; align-items: center; justify-content: center;
+  z-index: 50;
+}
+#modalBox {
+  background: #2e2e2e;
+  border-radius: 14px;
+  padding: 26px 30px;
+  min-width: 320px;
+  max-width: 90vw;
+  color: var(--cream);
+  text-align: center;
+}
+.modalTitle {
+  font-size: 26px; letter-spacing: 2px;
+  margin-bottom: 18px;
+}
+.setRow {
+  display: flex; align-items: center; justify-content: space-between;
+  gap: 20px;
+  margin: 12px 0;
+  font-size: 16px; letter-spacing: 1px;
+}
+.setBtn {
+  background: var(--panel);
+  color: var(--ink);
+  border-radius: 8px;
+  padding: 8px 18px;
+  font-size: 14px; font-weight: 900; letter-spacing: 1px;
+}
+.setBtn.danger { background: var(--red); color: #fff; width: 100%; }
+.setBtn.wide { width: 100%; margin-top: 16px; }
+select.setBtn { appearance: auto; }
+.volRange {
+  width: 150px;
+  accent-color: var(--yellow);
+  cursor: pointer;
+}
+
+/* ad stub */
+.adBox { min-width: 260px; }
+.adTitle { font-size: 20px; letter-spacing: 2px; margin-bottom: 16px; }
+.adTitle.reward { color: var(--yellow); margin-bottom: 0; }
+.adBar {
+  height: 12px;
+  background: rgba(255, 255, 255, 0.15);
+  border-radius: 6px;
+  overflow: hidden;
+}
+.adFill {
+  height: 100%; width: 0;
+  background: var(--yellow);
+  transition: width 1.85s linear;
+}
+
+/* death screen */
+.deathBox { padding: 10px 20px; }
+.deathTitle { font-size: 44px; color: var(--red); letter-spacing: 3px; margin-bottom: 18px; }
+.deathScore { font-size: 26px; margin: 6px 0; }
+.deathBest { font-size: 18px; color: var(--yellow); margin: 6px 0; }
+.deathSkulls { font-size: 18px; color: var(--cream); margin: 10px 0 18px; }
+.deathTap { font-size: 13px; opacity: 0.65; letter-spacing: 2px; animation: blink 1.4s infinite; }
+@keyframes blink { 50% { opacity: 0.2; } }
+
