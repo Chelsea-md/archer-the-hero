@@ -260,15 +260,19 @@
       // Confetti bursts on the battlefield behind the modal.
       const g = this.game;
       const palette = ['#ffd23e', '#e0453c', '#7dc93b', '#4f8fd0', '#ff7bac'];
-      const burst = () => {
-        const x = g.W * (0.2 + Math.random() * 0.6);
-        const y = g.H * (0.15 + Math.random() * 0.35);
-        g.fx.ring(x, y, 80, palette[(Math.random() * 5) | 0]);
-        for (const c of palette) g.fx.spark(x, y, c, 6, 360);
+      g.fx.shake(6);
+      const burst = (n) => {
+        for (let i = 0; i < n; i++) {
+          const x = g.W * (0.12 + Math.random() * 0.76);
+          const y = g.H * (0.12 + Math.random() * 0.4);
+          g.fx.ring(x, y, 90 + Math.random() * 60, palette[(Math.random() * 5) | 0]);
+          for (const c of palette) g.fx.spark(x, y, c, 8, 430);
+        }
       };
-      burst();
-      setTimeout(burst, 300);
-      setTimeout(burst, 650);
+      burst(3);
+      setTimeout(() => burst(3), 280);
+      setTimeout(() => { burst(2); RA.SND.play('fanfare'); }, 640);
+      setTimeout(() => burst(3), 1050);
       this.openModal(
         '<div class="buyBox grats">' +
         '<div class="gratsTitle">' + t('shop.gratsTitle') + '</div>' +
@@ -376,9 +380,10 @@
       set('lives', $('livesText'), lives);
       // Run countdown + XP bar
       if (game.state === 'playing') {
-        const remain = Math.max(0, RA.BAL.RUN_DURATION - game.runTime);
-        const mm = String(Math.floor(remain / 60)).padStart(2, '0');
-        const ss = String(Math.floor(remain % 60)).padStart(2, '0');
+        // QA: the clock builds up 00:00 → 14:00 rather than counting down.
+        const clock = Math.min(RA.BAL.RUN_DURATION, game.runTime);
+        const mm = String(Math.floor(clock / 60)).padStart(2, '0');
+        const ss = String(Math.floor(clock % 60)).padStart(2, '0');
         set('timer', $('runTimer'), mm + ':' + ss);
         const need = RA.BAL.xpForNext(game.level);
         const pct = Math.round(Math.min(1, game.xp / need) * 100);
@@ -535,10 +540,14 @@
         .map((l) => '<option value="' + l.code + '"' + (RA.I18N.lang === l.code ? ' selected' : '') + '>' + l.label + '</option>')
         .join('');
       const vol = Math.round((S.data.settings.volume != null ? S.data.settings.volume : 1) * 100);
+      const sens = Math.round((S.data.settings.sensitivity != null ? S.data.settings.sensitivity : 1) * 100);
       this.openModal(
         '<div class="modalTitle">' + t('settings.title') + '</div>' +
         '<div class="setRow"><span>' + t('settings.sound') + '</span>' +
         '<input type="range" id="volSlider" class="volRange" min="0" max="100" value="' + vol + '"></div>' +
+        '<div class="setRow"><span>' + t('settings.sensitivity') + '</span>' +
+        '<input type="range" id="sensSlider" class="volRange" min="20" max="100" value="' + sens + '">' +
+        '<button id="sensReset" class="setBtn mini">' + t('settings.sensReset') + '</button></div>' +
         '<div class="setRow"><span>' + t('settings.violence') + '</span>' +
         '<button id="goreToggle" class="setBtn">' + t('violence.' + S.data.settings.gore) + '</button></div>' +
         '<div class="setRow"><span>' + t('settings.language') + '</span>' +
@@ -568,6 +577,16 @@
       $('volSlider').addEventListener('change', () => {
         S.save();
         RA.SND.play('click'); // audible sample of the chosen volume
+      });
+      $('sensSlider').addEventListener('input', (e) => {
+        S.data.settings.sensitivity = (+e.target.value) / 100;
+        S.save();
+      });
+      $('sensReset').addEventListener('click', () => {
+        S.data.settings.sensitivity = 1;
+        $('sensSlider').value = 100;
+        S.save();
+        RA.SND.play('click');
       });
       $('goreToggle').addEventListener('click', () => {
         const order = ['off', 'low', 'full'];

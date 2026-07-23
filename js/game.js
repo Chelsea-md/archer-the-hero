@@ -19,6 +19,7 @@
       this.lives = 0;
       this.hitStop = 0; // brief world-freeze on meaty hits (game feel)
       this.camAnim = null; // title zoom-out / zoom-in animation
+      this.dimT = 0;       // death gloom fade (grows while state is gameover)
       this.resetRogue();
 
       this.arrows = [];
@@ -891,7 +892,10 @@
       this.recordRunStats();
       S.pushLeader({ score: this.score, skulls: this.runSkulls, date: new Date().toISOString().slice(0, 10) });
       S.save();
-      RA.UI && RA.UI.showDeath(this.score, S.data.best, this.runSkulls, isNewBest);
+      // Let the gloom settle over the battlefield before the modal lands.
+      this.schedule(1.25, () => {
+        RA.UI && RA.UI.showDeath(this.score, S.data.best, this.runSkulls, isNewBest);
+      });
     }
 
     recordRunStats() {
@@ -919,6 +923,7 @@
 
     backToMenu() {
       this.state = 'menu';
+      this.dimT = 0;
       this.arrows = [];
       this.hazards = [];
       this.beams = [];
@@ -1162,8 +1167,9 @@
       const dx = x - a.sx, dy = y - a.sy;
       a.drag = Math.hypot(dx, dy);
       if (a.drag >= RA.BAL.MIN_DRAG_PIXELS) {
-        p.aim.active = true;
-        p.aim.angle = Math.atan2(dy, dx);
+        const ang = Math.atan2(dy, dx);
+        if (!p.aim.active) { p.aim.active = true; p.aim.angle = ang; }
+        a.targetAngle = ang; // eased toward in update() per the sensitivity setting
       }
     }
 
@@ -1374,6 +1380,15 @@
       if (p && p.alive) {
         if (this.aimP && p.aim.active && p.stunT <= 0) {
           p.aim.draw = Math.min(1, p.aim.draw + dt / this.drawTime);
+          // Aim follows the drag at the configured sensitivity (100% = instant).
+          const ta = this.aimP.targetAngle;
+          if (ta != null) {
+            const k = RA.SAVE.data.settings.sensitivity || 1;
+            let dA = ta - p.aim.angle;
+            while (dA > Math.PI) dA -= Math.PI * 2;
+            while (dA < -Math.PI) dA += Math.PI * 2;
+            p.aim.angle += dA * Math.min(1, dt * 60 * k);
+          }
         }
         // Crouching slowly drains stamina; empty tank stands you up.
         if (p.crouching) {
@@ -1413,6 +1428,12 @@
       this.hazards = this.hazards.filter((h) => !h.dead);
 
       const solids = this.solids();
+      // Once the run has ended, sweep the battlefield quickly and let the
+      // death gloom thicken.
+      if (this.state === 'gameover' || this.state === 'victory') {
+        for (const c of this.corpses) c.t = Math.max(c.t, 5.2);
+        if (this.state === 'gameover') this.dimT = Math.min(1.2, this.dimT + dt);
+      }
       for (const c of this.corpses) c.step(dt, solids, this.W, this.H);
       this.corpses = this.corpses.filter((c) => !c.dead);
 
@@ -1585,7 +1606,12 @@
         ctx.restore();
       }
       for (const hz of this.hazards) hz.draw(ctx);
-      for (const c of this.corpses) c.draw(ctx);
+      for (const c of this.corpses) {
+        // Corpses melt away over their last half second instead of popping.
+        ctx.globalAlpha = Math.max(0, Math.min(1, (6 - c.t) / 0.5));
+        c.draw(ctx);
+      }
+      ctx.globalAlpha = 1;
       for (const ap of this.apples) ap.draw(ctx);
 
       for (const e of this.enemies) {
@@ -1618,6 +1644,12 @@
       vig.addColorStop(1, 'rgba(0,0,0,0.2)');
       ctx.fillStyle = vig;
       ctx.fillRect(-20, -20, W + 40, H + 40);
+      // Death gloom: the world sinks into darkness before YOU DIED appears.
+      if (this.dimT > 0) {
+        const k = Math.min(1, this.dimT / 1.1);
+        ctx.fillStyle = 'rgba(4, 2, 8, ' + (0.62 * k * k).toFixed(3) + ')';
+        ctx.fillRect(-20, -20, W + 40, H + 40);
+      }
       ctx.restore();
     }
 

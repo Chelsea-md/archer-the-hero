@@ -847,6 +847,10 @@ body.in-game .game-only { display: flex !important; }
   box-shadow: 0 3px 10px rgba(0, 0, 0, 0.3);
 }
 .titleSub:hover { filter: brightness(1.07); }
+/* QA: shop reads yellow, upgrades read blue — muted, not flashy. */
+#shopBtn { background: linear-gradient(160deg, #e6bf49, #c2942c); color: #3a2e0c; }
+#upgradeBtn { background: linear-gradient(160deg, #64a5dc, #3c78b8); color: #f0f7ff; }
+.setBtn.mini { padding: 6px 10px; font-size: 11px; margin-left: 8px; }
 
 /* ---------- Archer Shop modal (3-column catalog) ---------- */
 #shopGrid {

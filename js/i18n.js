@@ -202,6 +202,8 @@
 
       'settings.title': 'SETTINGS',
       'settings.sound': 'SOUND',
+      'settings.sensitivity': 'AIM SENSITIVITY',
+      'settings.sensReset': 'RESET',
       'settings.language': 'LANGUAGE',
       'settings.reset': 'RESET PROGRESS',
       'settings.resetConfirm': 'TAP AGAIN TO CONFIRM',
