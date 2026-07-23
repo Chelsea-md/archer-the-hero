@@ -4,6 +4,20 @@
    ============================================================ */
 * { margin: 0; padding: 0; box-sizing: border-box; }
 
+/* ---------- fonts: ELAND Nice M (titles) / ELAND Choice B (body) ---------- */
+@font-face {
+  font-family: 'ELAND Nice';
+  src: url('../fonts/ELAND_Nice_M.woff?v=1') format('woff');
+  font-weight: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: 'ELAND Choice';
+  src: url('../fonts/ELAND_Choice_B.woff?v=1') format('woff');
+  font-weight: normal;
+  font-display: swap;
+}
+
 :root {
   --red: #e0453c;
   --blue: #4f8fd0;
@@ -17,10 +31,16 @@ html, body {
   width: 100%; height: 100%;
   overflow: hidden;
   background: #3b3b3b;
-  font-family: "Arial Black", Impact, "Segoe UI", sans-serif;
+  font-family: 'ELAND Choice', "Arial Black", Impact, "Segoe UI", sans-serif;
   user-select: none;
   -webkit-user-select: none;
   touch-action: none;
+}
+
+/* Display headings ride the Nice cut; everything else stays Choice B. */
+.skillTitle, .modalTitle, .titleKingdom, .titleWar, .deathTitle, .deathNew,
+.victoryTitle, .gratsTitle, .homeTitle, .cineText, #bestBanner {
+  font-family: 'ELAND Nice', 'ELAND Choice', "Arial Black", sans-serif;
 }
 
 #game {
