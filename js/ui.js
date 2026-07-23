@@ -487,6 +487,7 @@
       $('modalBox').classList.remove('bare');
       $('modalBox').innerHTML = '';
       document.querySelectorAll('.deathTapOut').forEach((el) => el.remove());
+      this._clearNudge();
       this._resetArmed = false;
     },
 
@@ -563,7 +564,7 @@
         '<div class="setRow"><span>' + t('settings.sound') + '</span>' +
         '<input type="range" id="volSlider" class="volRange" min="0" max="100" value="' + vol + '"></div>' +
         '<div class="setRow"><span>' + t('settings.sensitivity') + '</span>' +
-        '<input type="range" id="sensSlider" class="volRange" min="20" max="100" value="' + sens + '">' +
+        '<input type="range" id="sensSlider" class="volRange" min="20" max="180" value="' + sens + '">' +
         '<button id="sensReset" class="setBtn mini">' + t('settings.sensReset') + '</button></div>' +
         '<div class="setRow"><span>' + t('settings.violence') + '</span>' +
         '<button id="goreToggle" class="setBtn">' + t('violence.' + S.data.settings.gore) + '</button></div>' +
@@ -719,6 +720,31 @@
           this.showSkillChoice(RA.SKILLS.genOffers(g)); // re-render with fresh offers
         });
       }
+      // Idle nudge: 4s without input → gently wiggle one option as a hint.
+      this._clearNudge();
+      let idleT;
+      const wiggle = () => {
+        const cards = document.querySelectorAll('.skillCard');
+        if (!cards.length) return;
+        const c = cards[(Math.random() * cards.length) | 0];
+        c.classList.remove('nudge');
+        void c.offsetWidth; // restart the animation
+        c.classList.add('nudge');
+        idleT = setTimeout(wiggle, 4000);
+      };
+      const rearm = () => { clearTimeout(idleT); idleT = setTimeout(wiggle, 4000); };
+      document.addEventListener('pointermove', rearm);
+      document.addEventListener('pointerdown', rearm);
+      this._nudgeCleanup = () => {
+        clearTimeout(idleT);
+        document.removeEventListener('pointermove', rearm);
+        document.removeEventListener('pointerdown', rearm);
+      };
+      rearm();
+    },
+
+    _clearNudge() {
+      if (this._nudgeCleanup) { this._nudgeCleanup(); this._nudgeCleanup = null; }
     },
 
     // This run's build (skills + star tiers) for the end-of-run screens.
