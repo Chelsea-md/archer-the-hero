@@ -345,6 +345,18 @@
       const set = (key, el, val) => {
         if (c[key] !== val) { c[key] = val; el.textContent = val; }
       };
+      // Keep the bars/buttons (and the first-run drag coach) glued to the
+      // tower through the live camera — a CSS vw anchor drifts off the archer
+      // once towerX clamps at 480 on wide screens.
+      const cam = game.camNow();
+      const s = game.viewScale || 1;
+      const toPx = (wx) => Math.round(((wx - cam.fx) * cam.z + game.W / 2) * s) + 'px';
+      const hudLeft = toPx(game.towerX);
+      if (c.hudLeft !== hudLeft) {
+        c.hudLeft = hudLeft;
+        $('playerHud').style.left = hudLeft;
+        $('dragCoach').style.left = toPx(game.towerX + 75);
+      }
       if (p) {
         const hpPct = Math.max(0, Math.round((p.hp / p.hpMax) * 100));
         const staPct = Math.max(0, Math.round((p.sta / p.staMax) * 100));
