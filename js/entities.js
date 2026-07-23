@@ -405,24 +405,9 @@
         const sx = px + (this.x - px) * (i / steps);
         const sy = py + (this.y - py) * (i / steps);
 
-        const rr = this.fromPlayer ? 3 * (g.sk ? g.sk.hitSize : 1) : 3;
-        for (const tgt of g.targetsFor(this.fromPlayer)) {
-          if (this.hitSet && this.hitSet.has(tgt)) continue;
-          const hit = tgt.hitTest(sx, sy, rr);
-          if (hit) {
-            this.x = sx; this.y = sy;
-            g.arrowHit(this, tgt, hit, sx, sy);
-            if (this.hitSet) this.hitSet.add(tgt);
-            if (!this.def.pierce) { this.dead = true; return; }
-          }
-        }
-
-        if (this.fromPlayer) {
-          for (const ap of g.apples) {
-            if (!ap.dead && Math.hypot(ap.x - sx, ap.y - sy) < ap.r + 7) g.collectApple(ap);
-          }
-        }
-
+        // Terrain first: a sample already buried in a solid lands the arrow
+        // there — it must never clip a body part "through the floor" in the
+        // same step.
         for (const r of g.solids()) {
           if (GEO.pointInRect(sx, sy, r)) {
             this.x = sx; this.y = sy;
@@ -435,6 +420,31 @@
               });
             }
             return;
+          }
+        }
+
+        const rr = this.fromPlayer ? 3 * (g.sk ? g.sk.hitSize : 1) : 3;
+        for (const tgt of g.targetsFor(this.fromPlayer)) {
+          if (this.hitSet && this.hitSet.has(tgt)) continue;
+          const hit = tgt.hitTest(sx, sy, rr);
+          if (hit) {
+            // Floor forgiveness: a shot skimming the surface the target
+            // stands on reads as "stuck in the ground", so let it land there
+            // instead of clipping a foot — dodged poison arrows used to
+            // infect players as they touched down beside them. Shins/feet
+            // get a wider band than thighs so low arcs bury themselves.
+            const shin = hit.zone === 'legF2' || hit.zone === 'legB2';
+            if (hit.zone.indexOf('leg') === 0 && sy > tgt.anchorY - (shin ? 24 : 10)) continue;
+            this.x = sx; this.y = sy;
+            g.arrowHit(this, tgt, hit, sx, sy);
+            if (this.hitSet) this.hitSet.add(tgt);
+            if (!this.def.pierce) { this.dead = true; return; }
+          }
+        }
+
+        if (this.fromPlayer) {
+          for (const ap of g.apples) {
+            if (!ap.dead && Math.hypot(ap.x - sx, ap.y - sy) < ap.r + 7) g.collectApple(ap);
           }
         }
       }
